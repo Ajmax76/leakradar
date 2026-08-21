@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LeakRadar — Automated API Security & BOLA Reconnaissance</title>
+  <title>LeakRadar — Automated API Reconnaissance & BOLA Detection</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,12 +11,14 @@
       theme: {
         extend: {
           colors: {
-            canvas: '#08090c',
-            surface: '#101216',
-            surfaceBorder: '#1e222a',
+            themeBg: '#090a0e',
+            themeFg: '#f0f4f8',
+            surface: '#111319',
+            surfaceBorder: '#232834',
+            mint: '#a1ffcb',
             accent: '#00f0ff',
-            accentDim: 'rgba(0,240,255,0.08)',
-            muted: '#8b949e',
+            grey: '#1a1d26',
+            muted: '#8b95a5',
           },
           fontFamily: {
             sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
@@ -28,253 +30,386 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --site-header-height: 5rem;
+    }
     body {
-      background-color: #08090c;
-      color: #e6edf3;
+      background-color: #090a0e;
+      color: #f0f4f8;
       font-family: 'Inter', sans-serif;
-      letter-spacing: -0.015em;
+      letter-spacing: -0.03em;
     }
     ::selection {
-      background: rgba(0, 240, 255, 0.2);
-      color: #ffffff;
+      background: #a1ffcb;
+      color: #090a0e;
     }
-    .grid-lines {
-      background-size: 40px 40px;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    
+    /* Aspen Search Button Animation (Scale-X Slide) */
+    .aspen-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .aspen-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: #a1ffcb;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 0;
+    }
+    .aspen-btn:hover::before {
+      transform: scaleX(1);
+    }
+    .aspen-btn:hover {
+      color: #090a0e;
+    }
+    .aspen-btn > * {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Aspen Accordion Item Slide-Up Animation */
+    .aspen-card-btn {
+      position: relative;
+      overflow: hidden;
+      transition: color 0.4s ease;
+    }
+    .aspen-card-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: #111319;
+      transform: scaleY(0);
+      transform-origin: top;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: -1;
+    }
+    .aspen-card-btn:hover::before {
+      transform: scaleY(1);
+    }
+
+    /* Headline 50 Aspen Styling */
+    .text-headline-50 {
+      font-size: clamp(3rem, 7vw, 7.5rem);
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+    }
+    .text-headline-30 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      font-weight: 700;
+    }
+    .text-digit-10 {
+      font-size: clamp(3rem, 6vw, 6rem);
+      line-height: 0.9;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    /* Grid lines */
+    .grid-divider {
+      border-color: #232834;
     }
   </style>
 </head>
-<body class="bg-canvas text-slate-100 antialiased selection:bg-accent/20 selection:text-white">
+<body class="bg-themeBg text-themeFg antialiased selection:bg-mint selection:text-themeBg">
 
-  <!-- Grid lines background -->
-  <div class="fixed inset-0 grid-lines pointer-events-none z-0 opacity-40"></div>
+  <!-- Header Navigation -->
+  <header class="border-b border-surfaceBorder bg-themeBg/95 backdrop-blur-md sticky top-0 z-50 h-20">
+    <div class="max-w-[1600px] mx-auto px-6 h-full flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-3 group">
+        <span class="text-2xl font-black tracking-tighter text-white uppercase group-hover:text-mint transition-colors">LeakRadar</span>
+        <span class="text-[10px] font-mono tracking-widest text-mint bg-mint/10 px-2.5 py-1 border border-mint/30 uppercase">v0.1.0</span>
+      </a>
+      <nav class="hidden md:flex items-center space-x-10 text-xs font-mono uppercase tracking-widest text-muted">
+        <a href="#about" class="hover:text-white transition-colors">01 / Engine</a>
+        <a href="#capabilities" class="hover:text-white transition-colors">02 / Stack</a>
+        <a href="#pricing" class="hover:text-white transition-colors">03 / Pricing</a>
+        <a href="https://github.com/ajmax76/leakradar" target="_blank" class="text-white hover:text-mint border-b border-mint pb-0.5 transition-colors">GitHub &rarr;</a>
+      </nav>
+    </div>
+  </header>
 
-  <div class="relative z-10">
+  <main class="min-h-screen">
 
-    <!-- Navigation -->
-    <header class="border-b border-surfaceBorder bg-canvas/90 backdrop-blur-md sticky top-0 z-50">
-      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <a href="#" class="flex items-center space-x-2">
-          <span class="text-lg font-bold tracking-tight text-white">LeakRadar</span>
-          <span class="text-[10px] uppercase font-mono tracking-widest text-accent bg-accent/10 px-2 py-0.5 border border-accent/20">v0.1.0</span>
-        </a>
-        <nav class="flex items-center space-x-8 text-xs uppercase tracking-widest text-muted font-medium">
-          <a href="#capabilities" class="hover:text-white transition-colors">Engine</a>
-          <a href="#metrics" class="hover:text-white transition-colors">Metrics</a>
-          <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
-          <a href="https://github.com/ajmax76/leakradar" target="_blank" class="text-white hover:text-accent transition-colors border-b border-accent/40 pb-0.5">GitHub</a>
-        </nav>
-      </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="pt-24 pb-20 px-6 max-w-6xl mx-auto">
-      <div class="max-w-3xl">
-        <div class="inline-flex items-center space-x-2 text-[11px] font-mono text-accent uppercase tracking-widest mb-6">
-          <span class="w-1.5 h-1.5 bg-accent"></span>
-          <span>OWASP API1:2023 Reconnaissance & Vulnerability Engine</span>
-        </div>
+    <!-- Hero Section (Aspen Split-Grid 2x2 Layout) -->
+    <section class="border-b border-surfaceBorder bg-themeBg">
+      <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-surfaceBorder">
         
-        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter text-white leading-none mb-8">
-          leakradar.<br>
-          <span class="text-muted font-light">detecting bola at scale.</span>
-        </h1>
-
-        <p class="text-base text-slate-400 font-normal leading-relaxed mb-10 max-w-2xl">
-          Automated cross-token replay engine. Harvests JWT identity claims, strips dynamic response volatility across three baseline requests, and flags authorization bypasses with mathematical precision.
-        </p>
-
-        <!-- Command Pill -->
-        <div class="inline-flex items-center space-x-4 bg-surface border border-surfaceBorder px-4 py-3 font-mono text-xs text-slate-300 mb-12">
-          <span class="text-accent">$</span>
-          <span>pip install leakradar</span>
-          <button onclick="navigator.clipboard.writeText('pip install leakradar'); this.innerText='COPIED';" class="text-[10px] text-muted hover:text-white uppercase tracking-wider pl-4 border-l border-surfaceBorder transition-colors">Copy</button>
-        </div>
-
-        <div class="flex items-center space-x-6 text-xs uppercase tracking-widest font-semibold">
-          <a href="#pricing" class="bg-white text-canvas px-6 py-3 hover:bg-accent transition-colors">Get Started</a>
-          <a href="https://github.com/ajmax76/leakradar" target="_blank" class="text-muted hover:text-white transition-colors flex items-center space-x-1">
-            <span>Documentation</span>
-            <span>&rarr;</span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Metrics Bar -->
-    <section id="metrics" class="border-y border-surfaceBorder bg-surface/50 py-12">
-      <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold text-white font-mono mb-1">3x</div>
-          <div class="text-[11px] uppercase tracking-widest text-muted font-mono">Baseline Volatility Normalization</div>
-        </div>
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold text-accent font-mono mb-1">99.2%</div>
-          <div class="text-[11px] uppercase tracking-widest text-muted font-mono">False Positive Pruning Rate</div>
-        </div>
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold text-white font-mono mb-1">&ge;4.5</div>
-          <div class="text-[11px] uppercase tracking-widest text-muted font-mono">Shannon Entropy Threshold</div>
-        </div>
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold text-white font-mono mb-1">&lt;50ms</div>
-          <div class="text-[11px] uppercase tracking-widest text-muted font-mono">Cross-Token Probe Replay</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Capabilities / Engine -->
-    <section id="capabilities" class="py-24 px-6 max-w-6xl mx-auto">
-      <div class="mb-16">
-        <span class="text-[11px] font-mono uppercase tracking-widest text-accent">Core Capabilities</span>
-        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-white mt-2">Precision-engineered scanning architecture.</h2>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-8">
-        
-        <!-- 01 -->
-        <div class="p-8 bg-surface border border-surfaceBorder flex flex-col justify-between">
+        <!-- Hero Left Grid: Sticky Title -->
+        <div class="p-8 md:p-16 lg:sticky lg:top-20 flex flex-col justify-between min-h-[70vh] lg:min-h-[calc(100vh-5rem)]">
           <div>
-            <span class="text-xs font-mono text-accent">01 / Volatility Pruning</span>
-            <h3 class="text-xl font-bold text-white mt-3 mb-3">3-Baseline Response Normalization</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">
-              Executes triple identical User A requests before cross-token evaluation to identify and strip dynamic nonces, session timestamps, and variable request IDs.
+            <div class="flex items-center space-x-3 text-xs font-mono text-mint uppercase tracking-widest mb-8">
+              <span class="w-2 h-2 bg-mint inline-block"></span>
+              <span>OWASP API1:2023 RECONNAISSANCE</span>
+            </div>
+
+            <h1 class="text-headline-50 text-white uppercase mb-8">
+              leakradar.<br>
+              <span class="text-slate-500 font-light italic lowercase">detecting bola at scale.</span>
+            </h1>
+
+            <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-lg font-normal mb-12">
+              An open-core API security reconnaissance engine. Harvests JWT identity claims, strips dynamic response volatility across three baselines, and exposes cross-token authorization vulnerabilities before production compromise.
             </p>
           </div>
-          <div class="mt-8 pt-4 border-t border-surfaceBorder/50 font-mono text-[11px] text-muted">
-            canonicalizer.py &bull; strip_paths()
+
+          <div class="pt-8 border-t border-surfaceBorder flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <a href="#pricing" class="aspen-btn bg-white text-themeBg font-mono text-xs font-bold uppercase tracking-widest h-14 px-8 border border-white w-full sm:w-auto">
+              <span>Start Free Scan</span>
+              <span class="ml-6">&rarr;</span>
+            </a>
+            <div class="text-xs font-mono text-muted uppercase tracking-widest">
+              Author: <a href="https://github.com/ajmax76" target="_blank" class="text-white hover:text-mint transition-colors">ajmax76</a>
+            </div>
           </div>
         </div>
 
-        <!-- 02 -->
-        <div class="p-8 bg-surface border border-surfaceBorder flex flex-col justify-between">
+        <!-- Hero Right Grid: Interactive Command & Proof Window -->
+        <div class="bg-surface/40 p-8 md:p-16 flex flex-col justify-between">
           <div>
-            <span class="text-xs font-mono text-accent">02 / Route Harvesting</span>
-            <h3 class="text-xl font-bold text-white mt-3 mb-3">JWT Identity Claim Binding</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <div class="flex items-center justify-between text-xs font-mono text-muted uppercase tracking-widest border-b border-surfaceBorder pb-4 mb-8">
+              <span>Quick Start</span>
+              <span class="text-mint">● Production Ready</span>
+            </div>
+
+            <!-- Install Command Box -->
+            <div class="bg-themeBg border border-surfaceBorder p-6 mb-8 font-mono text-xs">
+              <div class="text-muted text-[10px] uppercase tracking-widest mb-2">CLI Installation</div>
+              <div class="flex items-center justify-between text-slate-200">
+                <span><span class="text-mint">$</span> pip install leakradar</span>
+                <button onclick="navigator.clipboard.writeText('pip install leakradar'); this.innerText='COPIED';" class="text-[10px] text-mint hover:text-white uppercase tracking-wider pl-4 border-l border-surfaceBorder transition-colors">Copy</button>
+              </div>
+            </div>
+
+            <!-- Live Execution Spec -->
+            <div class="bg-themeBg border border-surfaceBorder p-6 font-mono text-xs">
+              <div class="text-muted text-[10px] uppercase tracking-widest mb-3">Target Scan Output</div>
+              <div class="space-y-2 text-[11px]">
+                <div class="text-muted">$ leakradar scan --spec /openapi.json</div>
+                <div class="text-slate-400">&bull; 28 Candidate Endpoints Harvested</div>
+                <div class="text-slate-400">&bull; 3-Baseline Volatility Pruned</div>
+                <div class="text-mint">&bull; High-Confidence BOLA: GET /api/v1/orders/{id}</div>
+                <div class="text-accent">&bull; Exported Markdown PoC & Executive PDF</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-12 pt-6 border-t border-surfaceBorder flex items-center justify-between text-xs font-mono text-muted">
+            <span>License: PolyForm Noncommercial 1.0.0</span>
+            <span class="text-white">ajmax76/leakradar</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Metrics Section (Aspen Sticky Metric Grid) -->
+    <section id="about" class="border-b border-surfaceBorder bg-themeBg">
+      <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 lg:divide-x divide-y lg:divide-y-0 divide-surfaceBorder">
+        
+        <!-- Metric 1 -->
+        <div class="p-10 md:p-14 flex flex-col justify-between bg-themeBg">
+          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6">01 / VOLATILITY</span>
+          <div>
+            <div class="text-digit-10 font-mono text-white mb-2">3X</div>
+            <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Baseline Volatility Normalization</p>
+          </div>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="p-10 md:p-14 flex flex-col justify-between bg-mint text-themeBg">
+          <span class="font-mono text-xs text-themeBg/80 font-bold uppercase tracking-widest mb-6">02 / PRECISION</span>
+          <div>
+            <div class="text-digit-10 font-mono text-themeBg mb-2">99.2%</div>
+            <p class="text-xs text-themeBg/90 font-mono font-semibold uppercase tracking-widest">False Positive Reduction Rate</p>
+          </div>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="p-10 md:p-14 flex flex-col justify-between bg-themeBg">
+          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6">03 / ENTROPY</span>
+          <div>
+            <div class="text-digit-10 font-mono text-white mb-2">&ge;4.5</div>
+            <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Shannon Entropy Secret Scanner</p>
+          </div>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="p-10 md:p-14 flex flex-col justify-between bg-grey text-white">
+          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6">04 / LATENCY</span>
+          <div>
+            <div class="text-digit-10 font-mono text-white mb-2">&lt;50ms</div>
+            <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Cross-Token Replay Latency</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Capabilities Section (Aspen Sticky Sidebar Grid) -->
+    <section id="capabilities" class="border-b border-surfaceBorder bg-themeBg">
+      <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-surfaceBorder">
+        
+        <!-- Sticky Left Header -->
+        <div class="lg:col-span-5 p-8 md:p-16 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] flex flex-col justify-between bg-themeBg">
+          <div>
+            <span class="text-xs font-mono text-mint uppercase tracking-widest">02 / Architecture</span>
+            <h2 class="text-headline-30 text-white uppercase mt-4">
+              Precision<br>BOLA Engine.
+            </h2>
+            <p class="text-slate-400 text-sm leading-relaxed mt-6 max-w-sm">
+              Specifically designed for security researchers, pentest teams, and bug bounty hunters to audit REST APIs with zero noise.
+            </p>
+          </div>
+
+          <div class="pt-8 border-t border-surfaceBorder">
+            <a href="https://github.com/ajmax76/leakradar" target="_blank" class="aspen-btn bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-8 w-full">
+              <span>View Source Code</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Stack: 4 Capability Cards -->
+        <div class="lg:col-span-7 divide-y divide-surfaceBorder bg-themeBg">
+          
+          <!-- Card 1 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">01 / VOLATILITY PRUNING</span>
+              <span class="text-[10px] font-mono text-muted uppercase group-hover:text-white transition-colors">canonicalizer.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">3-Baseline Response Normalization</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
+              Executes triple identical User A requests before cross-token evaluation to identify and strip dynamic nonces, session timestamps, and variable request IDs automatically.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">02 / ROUTE HARVESTING</span>
+              <span class="text-[10px] font-mono text-muted uppercase group-hover:text-white transition-colors">seeder.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">JWT Identity Claim Binding</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
               Extracts subject claims (<code class="text-slate-200">sub</code>, <code class="text-slate-200">user_id</code>, <code class="text-slate-200">email</code>) directly from authorization tokens to auto-populate parameterized endpoints.
             </p>
           </div>
-          <div class="mt-8 pt-4 border-t border-surfaceBorder/50 font-mono text-[11px] text-muted">
-            seeder.py &bull; OpenAPISeeder
-          </div>
-        </div>
 
-        <!-- 03 -->
-        <div class="p-8 bg-surface border border-surfaceBorder flex flex-col justify-between">
-          <div>
-            <span class="text-xs font-mono text-accent">03 / Matrix Replay</span>
-            <h3 class="text-xl font-bold text-white mt-3 mb-3">Scalar Leaf Overlap Evaluation</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">
+          <!-- Card 3 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">03 / MATRIX REPLAY</span>
+              <span class="text-[10px] font-mono text-muted uppercase group-hover:text-white transition-colors">bola_matrix.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">Scalar Leaf Overlap Evaluation</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
               Replays harvested resources with User B authentication. Measures scalar leaf matching ratios, resource ID echoing, and cross-account data exposure.
             </p>
           </div>
-          <div class="mt-8 pt-4 border-t border-surfaceBorder/50 font-mono text-[11px] text-muted">
-            bola_matrix.py &bull; BolaMatrixRunner
-          </div>
-        </div>
 
-        <!-- 04 -->
-        <div class="p-8 bg-surface border border-surfaceBorder flex flex-col justify-between">
-          <div>
-            <span class="text-xs font-mono text-accent">04 / Secret Analysis</span>
-            <h3 class="text-xl font-bold text-white mt-3 mb-3">Shannon Entropy Secret Scanner</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">
+          <!-- Card 4 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">04 / SECRET ANALYSIS</span>
+              <span class="text-[10px] font-mono text-muted uppercase group-hover:text-white transition-colors">secrets.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">Shannon Entropy Secret Scanner</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
               Inspects JSON payloads for exposed credentials, AWS keys, Stripe live keys, Slack webhooks, and private keys using regex rules and entropy thresholds.
             </p>
           </div>
-          <div class="mt-8 pt-4 border-t border-surfaceBorder/50 font-mono text-[11px] text-muted">
-            secrets.py &bull; SecretDetector
-          </div>
+
         </div>
 
       </div>
     </section>
 
-    <!-- Code / CLI Preview Section -->
-    <section class="py-16 px-6 max-w-6xl mx-auto">
-      <div class="bg-surface border border-surfaceBorder p-6 md:p-8 font-mono text-xs">
-        <div class="flex items-center justify-between border-b border-surfaceBorder pb-4 mb-6">
-          <div class="text-slate-400">leakradar scan execution log</div>
-          <div class="text-accent">STATUS: READY</div>
+    <!-- Pricing Section (Aspen Grid Style) -->
+    <section id="pricing" class="border-b border-surfaceBorder bg-surface/30">
+      <div class="max-w-[1600px] mx-auto p-8 md:p-16">
+        <div class="mb-12">
+          <span class="text-xs font-mono text-mint uppercase tracking-widest">03 / Licensing & Commercial Tiers</span>
+          <h2 class="text-headline-30 text-white uppercase mt-2">Transparent Licensing.</h2>
         </div>
-        <div class="space-y-2 text-slate-300">
-          <div class="text-muted">$ leakradar scan --base-url https://api.target.com --spec /openapi.json --token-a $TOKEN_A --token-b $TOKEN_B</div>
-          <div class="text-white">[INFO] Loaded 28 candidate endpoints from OpenAPI specification</div>
-          <div class="text-white">[INFO] User A baseline complete &mdash; 4 volatile paths identified and pruned</div>
-          <div class="text-accent">[CRITICAL] BOLA DETECTED &bull; GET /api/v1/orders/{order_id} &bull; Overlap: 94.2%</div>
-          <div class="text-accent">[CRITICAL] SECRET EXPOSED &bull; AWS Access Key &bull; Matched $.credentials.aws_key</div>
-          <div class="text-muted">[OUTPUT] Generated findings/proof_of_concept.md and findings/audit_report.pdf</div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Pricing -->
-    <section id="pricing" class="py-24 px-6 max-w-6xl mx-auto border-t border-surfaceBorder">
-      <div class="mb-16">
-        <span class="text-[11px] font-mono uppercase tracking-widest text-accent">Licensing & Tiers</span>
-        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-white mt-2">Clear pricing for auditors & teams.</h2>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-8">
-        
-        <!-- Community Tier -->
-        <div class="p-8 bg-surface border border-surfaceBorder flex flex-col justify-between">
-          <div>
-            <div class="text-xs font-mono uppercase tracking-widest text-muted">Community</div>
-            <div class="text-4xl font-extrabold text-white font-mono mt-3 mb-4">$0 <span class="text-xs font-normal text-muted">/ forever</span></div>
-            <p class="text-xs text-slate-400 leading-relaxed mb-6">
-              Complete core engine for security researchers, students, and open-source contributors.
-            </p>
-            <ul class="space-y-3 text-xs text-slate-300 font-mono mb-8">
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Full BOLA Matrix Engine</li>
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> 3-Baseline Volatility Filter</li>
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Markdown Bug Bounty PoCs</li>
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Secret Scanner & Entropy Analysis</li>
-            </ul>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          <!-- Community Card -->
+          <div class="bg-themeBg border border-surfaceBorder p-8 md:p-12 flex flex-col justify-between">
+            <div>
+              <div class="text-xs font-mono text-muted uppercase tracking-widest mb-4">Open Source</div>
+              <h3 class="text-3xl font-black text-white uppercase tracking-tight">Community</h3>
+              <div class="text-4xl font-black font-mono text-white mt-4 mb-6">$0 <span class="text-xs font-normal text-muted">/ forever</span></div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-8">
+                Complete core CLI scanner for individual security researchers, bug bounty hunters, and open-source contributors.
+              </p>
+              <ul class="space-y-3 text-xs font-mono text-slate-300 mb-8 border-t border-surfaceBorder pt-6">
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Full BOLA Matrix Engine</li>
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> 3-Baseline Volatility Filter</li>
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Markdown Bug Bounty PoCs</li>
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Shannon Entropy Secret Filter</li>
+              </ul>
+            </div>
+            <a href="https://github.com/ajmax76/leakradar" target="_blank" class="aspen-btn bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-8 w-full">
+              <span>Install CLI Engine</span>
+              <span>&rarr;</span>
+            </a>
           </div>
-          <a href="https://github.com/ajmax76/leakradar" target="_blank" class="block text-center py-3 border border-surfaceBorder text-xs uppercase tracking-widest text-white hover:bg-white hover:text-canvas transition-colors">Install Open Source CLI</a>
-        </div>
 
-        <!-- Pro Tier -->
-        <div class="p-8 bg-surface border border-accent/40 flex flex-col justify-between relative">
-          <div class="absolute top-0 right-0 bg-accent text-canvas text-[9px] uppercase font-mono font-bold px-2 py-0.5">Pro Tier</div>
-          <div>
-            <div class="text-xs font-mono uppercase tracking-widest text-accent">Pro Auditor</div>
-            <div class="text-4xl font-extrabold text-white font-mono mt-3 mb-4">$29 <span class="text-xs font-normal text-muted">/ month</span></div>
-            <p class="text-xs text-slate-400 leading-relaxed mb-6">
-              Designed for security consultants, penetration testers, and enterprise DevSecOps teams.
-            </p>
-            <ul class="space-y-3 text-xs text-slate-300 font-mono mb-8">
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Everything in Community</li>
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Executive White-Label PDF Audits</li>
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Cloud Signature Sync Feed</li>
-              <li class="flex items-center"><span class="text-accent mr-2">&mdash;</span> Automated CVSS 3.1 & CWE Mapping</li>
-            </ul>
+          <!-- Pro Card -->
+          <div class="bg-themeBg border border-mint/40 p-8 md:p-12 flex flex-col justify-between relative">
+            <div class="absolute top-0 right-0 bg-mint text-themeBg font-mono text-[10px] font-bold uppercase tracking-widest px-3 py-1">Pro Tier</div>
+            <div>
+              <div class="text-xs font-mono text-mint uppercase tracking-widest mb-4">Commercial License</div>
+              <h3 class="text-3xl font-black text-white uppercase tracking-tight">Pro Auditor</h3>
+              <div class="text-4xl font-black font-mono text-white mt-4 mb-6">$29 <span class="text-xs font-normal text-muted">/ month</span></div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-8">
+                Designed for penetration testing firms, freelance security auditors, and enterprise DevSecOps teams.
+              </p>
+              <ul class="space-y-3 text-xs font-mono text-slate-300 mb-8 border-t border-surfaceBorder pt-6">
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Everything in Community</li>
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Executive White-Label PDF Audits</li>
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Cloud Signature Sync Feed</li>
+                <li class="flex items-center"><span class="text-mint mr-3">&mdash;</span> Automated CVSS 3.1 & CWE Mapping</li>
+              </ul>
+            </div>
+            <a href="https://buy.polar.sh/leakradar-pro" target="_blank" class="aspen-btn bg-mint text-themeBg font-mono text-xs uppercase font-bold tracking-widest h-14 px-8 w-full">
+              <span>Acquire Pro License</span>
+              <span>&rarr;</span>
+            </a>
           </div>
-          <a href="https://buy.polar.sh/leakradar-pro" target="_blank" class="block text-center py-3 bg-accent text-canvas text-xs uppercase tracking-widest font-bold hover:bg-white transition-colors">Acquire Pro License</a>
-        </div>
 
+        </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="border-t border-surfaceBorder py-12 px-6 text-xs text-muted font-mono">
-      <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>&copy; 2026 ajmax76 &bull; LeakRadar Project</div>
-        <div class="flex items-center space-x-6">
+    <footer class="bg-themeBg py-12 px-6 border-t border-surfaceBorder">
+      <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs font-mono text-muted">
+        <div>&copy; 2026 ajmax76 &bull; LeakRadar API Reconnaissance Engine</div>
+        <div class="flex items-center space-x-8">
           <a href="https://github.com/ajmax76/leakradar" target="_blank" class="hover:text-white transition-colors">GitHub</a>
           <a href="https://pypi.org/project/leakradar/" target="_blank" class="hover:text-white transition-colors">PyPI</a>
-          <a href="https://polyformproject.org/" target="_blank" class="hover:text-white transition-colors">PolyForm Noncommercial 1.0.0</a>
+          <a href="https://polyformproject.org/" target="_blank" class="hover:text-white transition-colors">PolyForm 1.0.0</a>
         </div>
       </div>
     </footer>
 
-  </div>
+  </main>
 
 </body>
 </html>
