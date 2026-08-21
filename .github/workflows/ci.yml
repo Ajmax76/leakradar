@@ -35,11 +35,11 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
-      - name: Wait for VAmPI Service
+      - name: Wait for VAmPI Service & Init DB
         run: |
           for i in {1..30}; do
-            if curl -s http://localhost:5000/users/v1/register > /dev/null; then
-              echo "VAmPI service is online and ready."
+            if curl -s http://localhost:5000/createdb > /dev/null || curl -s http://localhost:5000/users/v1/createdb > /dev/null; then
+              echo "VAmPI database initialized."
               break
             fi
             echo "Waiting for VAmPI..."

@@ -19,8 +19,15 @@ async def test_vampi_full_e2e():
     user_b_name = f"attacker_{uid}"
 
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=15.0) as client:
+        # 0. Initialize VAmPI Database (Creates required tables)
+        try:
+            await client.get("/users/v1/createdb")
+            await client.get("/createdb")
+        except Exception:
+            pass
+
         # 1. Register & Login User A (Victim)
-        reg_a = await client.post(
+        await client.post(
             "/users/v1/register",
             json={"username": user_a_name, "password": "Password123!", "email": f"{user_a_name}@test.com"}
         )
@@ -34,7 +41,7 @@ async def test_vampi_full_e2e():
         assert token_a is not None, f"Failed to acquire auth_token for User A. Response: {res_a}"
 
         # 2. Register & Login User B (Attacker)
-        reg_b = await client.post(
+        await client.post(
             "/users/v1/register",
             json={"username": user_b_name, "password": "Password123!", "email": f"{user_b_name}@test.com"}
         )
