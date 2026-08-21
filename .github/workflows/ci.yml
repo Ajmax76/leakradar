@@ -11,9 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     services:
       vampi:
-        image: erezdesel/vampi:latest
+        image: erev0s/vampi:latest
         ports:
           - 5000:5000
+        env:
+          vulnerable: 1
+          tokentimetolive: 18000
 
     steps:
       - name: Checkout Code

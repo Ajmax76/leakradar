@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   vampi:
-    image: erezdesel/vampi:latest
+    image: erev0s/vampi:latest
     ports:
       - "5000:5000"
     environment:
-      - ENV=development
+      - vulnerable=1
+      - tokentimetolive=18000
