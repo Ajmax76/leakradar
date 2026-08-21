@@ -27,9 +27,15 @@ jobs:
 
       - name: Start VAmPI Test Container
         run: |
-          docker compose up -d
-          # Wait for VAmPI to respond
-          timeout 30s bash -c 'until curl -s http://localhost:5000/ > /dev/null; do sleep 1; done'
+          docker run -d -p 5000:5000 --name vampi erezdesel/vampi:latest
+          for i in {1..30}; do
+            if curl -s http://localhost:5000/ > /dev/null; then
+              echo "VAmPI container is online."
+              break
+            fi
+            echo "Waiting for VAmPI..."
+            sleep 1
+          done
 
       - name: Run E2E Test Suite
         run: |
