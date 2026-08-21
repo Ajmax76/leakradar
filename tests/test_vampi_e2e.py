@@ -63,13 +63,13 @@ async def test_vampi_full_e2e():
 
         # 4. Seed Resources as User A
         headers_a = {"Authorization": f"Bearer {token_a}", "Accept": "application/json"}
-        seeder = OpenAPISeeder(base_url=BASE_URL, user_a_headers=headers_a, client=client)
+        seeder = OpenAPISeeder(base_url=BASE_URL, user_a_headers=headers_a)
         seed_result: SeedResult = seeder.seed_endpoints(get_paths)
         assert len(seed_result.resources) > 0, "No seed resources harvested"
 
         # 5. Cross-Token Replay as User B
         headers_b = {"Authorization": f"Bearer {token_b}", "Accept": "application/json"}
-        runner = BolaMatrixRunner(user_b_headers=headers_b, client=client)
+        runner = BolaMatrixRunner(user_b_headers=headers_b)
         findings = runner.run(seed_result)
         assert isinstance(findings, list)
 
