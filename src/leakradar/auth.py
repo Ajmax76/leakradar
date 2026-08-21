@@ -28,7 +28,7 @@ class LicenseManager:
     Manages Polar.sh license key activation, machine fingerprinting, and local cache.
     """
 
-    ACTIVATION_URL = "https://api.demoforge.me/v1/license/activate"
+    ACTIVATION_URL = "https://api.ajmax76.github.io/leakradar/v1/license/activate"
     CACHE_DIR = Path.home() / ".leakradar"
     CACHE_FILE = CACHE_DIR / "license.json"
 

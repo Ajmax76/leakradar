@@ -1,6 +1,6 @@
 # ⚡ LeakRadar
 
-[![CI Pipeline](https://github.com/demoforgehq/leakradar/actions/workflows/ci.yml/badge.svg)](https://github.com/demoforgehq/leakradar/actions)
+[![CI Pipeline](https://github.com/ajmax76/leakradar/actions/workflows/ci.yml/badge.svg)](https://github.com/ajmax76/leakradar/actions)
 [![PyPI version](https://img.shields.io/pypi/v/leakradar.svg)](https://pypi.org/project/leakradar/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/leakradar.svg)](https://pypi.org/project/leakradar/)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](https://polyformproject.org/)
@@ -51,7 +51,7 @@ leakradar auth --key "lr_live_..."
 
 1. Clone repository:
 ```bash
-git clone https://github.com/demoforgehq/leakradar.git
+git clone https://github.com/ajmax76/leakradar.git
 cd leakradar
 ```
 
@@ -72,4 +72,4 @@ pytest tests/test_vampi_e2e.py -v
 
 ## 📄 License & Distribution
 
-LeakRadar is distributed under the PolyForm Noncommercial License 1.0.0 for security researchers and community use. Commercial audits and team tiers require a Pro License via [DemoForge HQ](https://demoforge.me).
+LeakRadar is distributed under the PolyForm Noncommercial License 1.0.0 for security researchers and community use. Commercial audits and team tiers require a Pro License via [ajmax76](https://ajmax76.github.io/leakradar/).

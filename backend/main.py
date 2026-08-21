@@ -6,11 +6,11 @@ import httpx
 import jwt
 from pydantic import BaseModel
 
-app = FastAPI(title="DemoForge HQ — License & Signature Service", version="1.0.0")
+app = FastAPI(title="ajmax76 HQ — License & Signature Service", version="1.0.0")
 
 POLAR_API_KEY = os.environ.get("POLAR_API_KEY", "")
 POLAR_ORGANIZATION_ID = os.environ.get("POLAR_ORGANIZATION_ID", "")
-JWT_SIGNING_SECRET = os.environ.get("JWT_SIGNING_SECRET", "demoforge_dev_secret_key_change_in_prod")
+JWT_SIGNING_SECRET = os.environ.get("JWT_SIGNING_SECRET", "ajmax76_dev_secret_key_change_in_prod")
 
 
 class LicenseActivationRequest(BaseModel):
