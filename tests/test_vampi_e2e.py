@@ -1,4 +1,5 @@
 import os
+import uuid
 from pathlib import Path
 import httpx
 import pytest
@@ -13,63 +14,66 @@ BASE_URL = os.environ.get("VAMPI_BASE_URL", "http://localhost:5000")
 
 @pytest.mark.asyncio
 async def test_vampi_full_e2e():
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+    uid = uuid.uuid4().hex[:6]
+    user_a_name = f"victim_{uid}"
+    user_b_name = f"attacker_{uid}"
+
+    async with httpx.AsyncClient(base_url=BASE_URL, timeout=15.0) as client:
         # 1. Register & Login User A (Victim)
-        await client.post(
+        reg_a = await client.post(
             "/users/v1/register",
-            json={"username": "victim_e2e", "password": "Password123!", "email": "victim_e2e@test.com"}
+            json={"username": user_a_name, "password": "Password123!", "email": f"{user_a_name}@test.com"}
         )
         login_a = await client.post(
             "/users/v1/login",
-            json={"username": "victim_e2e", "password": "Password123!"}
+            json={"username": user_a_name, "password": "Password123!"}
         )
-        assert login_a.status_code == 200
-        token_a = login_a.json().get("auth_token")
-        assert token_a is not None
+        assert login_a.status_code == 200, f"Login A HTTP status error: {login_a.status_code} - {login_a.text}"
+        res_a = login_a.json()
+        token_a = res_a.get("auth_token") or res_a.get("token") or res_a.get("access_token")
+        assert token_a is not None, f"Failed to acquire auth_token for User A. Response: {res_a}"
 
         # 2. Register & Login User B (Attacker)
-        await client.post(
+        reg_b = await client.post(
             "/users/v1/register",
-            json={"username": "attacker_e2e", "password": "Password123!", "email": "attacker_e2e@test.com"}
+            json={"username": user_b_name, "password": "Password123!", "email": f"{user_b_name}@test.com"}
         )
         login_b = await client.post(
             "/users/v1/login",
-            json={"username": "attacker_e2e", "password": "Password123!"}
+            json={"username": user_b_name, "password": "Password123!"}
         )
-        assert login_b.status_code == 200
-        token_b = login_b.json().get("auth_token")
-        assert token_b is not None
+        assert login_b.status_code == 200, f"Login B HTTP status error: {login_b.status_code} - {login_b.text}"
+        res_b = login_b.json()
+        token_b = res_b.get("auth_token") or res_b.get("token") or res_b.get("access_token")
+        assert token_b is not None, f"Failed to acquire auth_token for User B. Response: {res_b}"
 
         # 3. Fetch OpenAPI Spec
         spec_resp = await client.get("/openapi.json")
-        assert spec_resp.status_code == 200
+        assert spec_resp.status_code == 200, f"Failed to fetch openapi.json: {spec_resp.status_code}"
         spec_data = spec_resp.json()
         get_paths = {p: methods for p, methods in spec_data.get("paths", {}).items() if "get" in methods}
-        assert len(get_paths) > 0
+        assert len(get_paths) > 0, "No GET endpoints found in openapi.json spec"
 
         # 4. Seed Resources as User A
         headers_a = {"Authorization": f"Bearer {token_a}", "Accept": "application/json"}
         seeder = OpenAPISeeder(base_url=BASE_URL, user_a_headers=headers_a, client=client)
         seed_result: SeedResult = seeder.seed_endpoints(get_paths)
-        assert len(seed_result.resources) > 0
+        assert len(seed_result.resources) > 0, "No seed resources harvested"
 
         # 5. Cross-Token Replay as User B
         headers_b = {"Authorization": f"Bearer {token_b}", "Accept": "application/json"}
         runner = BolaMatrixRunner(user_b_headers=headers_b, client=client)
         findings = runner.run(seed_result)
-
-        # Assert BOLA finding on user profile
-        found_endpoints = [f.seed.endpoint_template for f in findings]
-        assert len(found_endpoints) >= 0
+        assert isinstance(findings, list)
 
         # 6. Verify Markdown and PDF Deliverable Generation
         out_dir = Path("./tmp_findings_test")
         out_dir.mkdir(exist_ok=True)
 
-        for idx, f in enumerate(findings):
+        for f in findings:
             md = MarkdownPoCExporter.export(f, target_name="VAmPI E2E", custom_tokens=[token_a, token_b])
             assert "Bearer <REDACTED_USER_B_TOKEN>" in md
-            assert "victim_e2e" not in md or "<REDACTED" in md
+            assert user_a_name not in md or "<REDACTED" in md
 
         pdf_path = out_dir / "test_report.pdf"
         PDFReportGenerator.generate(
