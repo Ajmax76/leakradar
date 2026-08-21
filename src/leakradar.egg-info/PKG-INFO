@@ -1,0 +1,104 @@
+Metadata-Version: 2.4
+Name: leakradar
+Version: 0.1.0
+Summary: Open-core API security CLI for BOLA/IDOR vulnerability scanning
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: typer>=0.9.0
+Requires-Dist: httpx>=0.25.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: pyyaml>=6.0.0
+Requires-Dist: reportlab>=3.6.0
+
+# LeakRadar
+
+**LeakRadar** is an open-core API security CLI written in Python. It detects Broken Object Level Authorization (BOLA / IDOR) vulnerabilities in REST APIs by comparing responses across two user accounts (**User A** - resource owner, and **User B** - attacker) and identifying unauthorized data exposure.
+
+---
+
+## Key Features
+
+- **Automated OpenAPI / Swagger Discovery**: Parses local JSON/YAML specs or remote URLs to discover GET endpoints.
+- **3-Baseline Volatility Detection**: Performs a 3-baseline sample request sequence to isolate dynamic response fields (timestamps, request IDs, nonces).
+- **JWT Claim Harvesting**: Automatically extracts identity claims (`sub`, `user_id`, `email`, `account_id`) from JWT Bearer tokens to build parameter pools.
+- **Cross-Token Replay Matrix**: Replays resource requests as User B (attacker) against User A's resources and evaluates scalar leaf overlap, resource ID echoing, and ownership data exposure.
+- **Data Redaction**: Redacts JWT tokens, Bearer headers, credit cards, emails, and API keys prior to report export.
+- **Dual Format Reporting**: Generates bug bounty-ready Markdown PoCs (with pipe-delimited evidence tables) and executive ReportLab PDF reports.
+- **Polar.sh Licensing Integration**: Monetization subsystem via Polar.sh for key activation and capability management.
+
+---
+
+## Installation
+
+Install in editable mode for development:
+
+```bash
+pip install -e .
+```
+
+Verify installation:
+
+```bash
+leakradar --help
+```
+
+---
+
+## Quick Start & Usage
+
+### 1. Licensing Activation (Optional / Paid Tier)
+
+To activate your paid subscription license key:
+
+```bash
+leakradar auth --key YOUR_POLAR_LICENSE_KEY
+```
+
+### 2. Running a BOLA Vulnerability Scan
+
+Scan a target REST API using an OpenAPI spec file and tokens for two user accounts:
+
+```bash
+leakradar scan \
+  --base-url "https://api.target.com/v1" \
+  --spec "./openapi.json" \
+  --token-a "USER_A_BEARER_TOKEN" \
+  --token-b "USER_B_BEARER_TOKEN" \
+  --output "./findings" \
+  --format all
+```
+
+### CLI Command Options (`scan`)
+
+| Option | Short | Description | Default |
+|---|---|---|---|
+| `--base-url` | `-u` | Base URL of the target API | *(Required)* |
+| `--spec` | `-s` | OpenAPI/Swagger spec file path or URL | *(Required)* |
+| `--token-a` | `-a` | Authorization token for User A (Owner) | *(Required)* |
+| `--token-b` | `-b` | Authorization token for User B (Attacker) | *(Required)* |
+| `--output` | `-o` | Output directory for report files | `./findings` |
+| `--format` | `-f` | Report format: `markdown`, `pdf`, `all` | `markdown` |
+| `--verbose` | `-v` | Enable verbose log output | `False` |
+
+---
+
+## Architecture Overview
+
+```
+src/leakradar/
+├── __init__.py         # Package metadata
+├── canonicalizer.py    # JSON normalization, 3-baseline A-A diff, error payload detector
+├── seeder.py           # JWT claim harvesting & OpenAPI resource discovery
+├── bola_matrix.py      # Cross-token replay & BOLA signal classifier
+├── redactor.py         # Secret, credential, and PII redactor
+├── markdown_poc.py     # Markdown PoC generator with evidence tables
+├── pdf_report.py       # Executive PDF report generator (ReportLab)
+├── auth.py             # Machine fingerprinting & Polar.sh license activation
+└── cli.py              # Typer CLI application entry point
+```
+
+---
+
+## License
+
+Open-Core License. See LICENSE file for details.

@@ -1,0 +1,223 @@
+import asyncio
+import hashlib
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import httpx
+import typer
+import yaml
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from leakradar.auth import LicenseManager
+from leakradar.bola_matrix import BolaMatrixRunner, Finding
+from leakradar.markdown_poc import MarkdownPoCExporter
+from leakradar.pdf_report import PDFReportGenerator
+from leakradar.seeder import OpenAPISeeder
+
+app = typer.Typer(
+    name="leakradar",
+    help="LeakRadar - Open-Core API Security CLI for BOLA/IDOR Vulnerability Scanning",
+    add_completion=False,
+)
+console = Console()
+
+
+def _load_openapi_spec(spec_path_or_url: str) -> Dict[str, Any]:
+    """
+    Fetch and parse an OpenAPI specification from a local file or HTTP URL (JSON or YAML).
+    """
+    content = ""
+    if spec_path_or_url.startswith("http://") or spec_path_or_url.startswith("https://"):
+        with httpx.Client(timeout=15.0, follow_redirects=True) as client:
+            resp = client.get(spec_path_or_url)
+            resp.raise_for_status()
+            content = resp.text
+    else:
+        p = Path(spec_path_or_url)
+        if not p.exists():
+            raise FileNotFoundError(f"Spec file not found: {spec_path_or_url}")
+        with open(p, "r", encoding="utf-8") as f:
+            content = f.read()
+
+    try:
+        return json.loads(content)
+    except Exception:
+        pass
+
+    try:
+        return yaml.safe_load(content)
+    except Exception as e:
+        raise ValueError(f"Failed to parse OpenAPI spec as JSON or YAML: {e}")
+
+
+def _generate_collision_proof_filename(finding: Finding) -> str:
+    """
+    Generates a deterministic collision-proof filename using endpoint template and param values hash.
+    """
+    clean_endpoint = finding.seed.endpoint_template.strip("/").replace("/", "_").replace("{", "").replace("}", "")
+    param_str = json.dumps(finding.seed.param_values, sort_keys=True)
+    hash_suffix = hashlib.sha256(param_str.encode("utf-8")).hexdigest()[:8]
+    return f"bola_{clean_endpoint}_{hash_suffix}"
+
+
+@app.command("auth")
+def auth_command(
+    key: str = typer.Option(..., "--key", "-k", help="Polar.sh License Key to activate")
+):
+    """
+    Activate a paid LeakRadar license key via Polar.sh.
+    """
+    console.print(f"[bold blue]Activating LeakRadar license...[/bold blue]")
+
+    async def _act():
+        ctx = await LicenseManager.activate_license(key)
+        return ctx
+
+    ctx = asyncio.run(_act())
+
+    if ctx.active:
+        console.print(
+            Panel.fit(
+                f"[bold green]License Activated Successfully![/bold green]\n"
+                f"Tier: [bold cyan]{ctx.tier.upper()}[/bold cyan]\n"
+                f"PDF Export: {'[green]Enabled[/green]' if ctx.capabilities.get('pdf_export') else '[red]Disabled[/red]'}\n"
+                f"Cloud Rules: {'[green]Enabled[/green]' if ctx.capabilities.get('cloud_rules') else '[red]Disabled[/red]'}",
+                title="LeakRadar Licensing",
+            )
+        )
+    else:
+        console.print("[bold red]Error: License activation failed.[/bold red]")
+
+
+@app.command("scan")
+def scan_command(
+    base_url: str = typer.Option(..., "--base-url", "-u", help="Base URL of the target REST API"),
+    spec: str = typer.Option(..., "--spec", "-s", help="OpenAPI/Swagger spec file path or URL"),
+    token_a: str = typer.Option(..., "--token-a", "-a", help="Authorization Header / Token for User A (Resource Owner)"),
+    token_b: str = typer.Option(..., "--token-b", "-b", help="Authorization Header / Token for User B (Attacker)"),
+    output: str = typer.Option("./findings", "--output", "-o", help="Directory to save report outputs"),
+    format_choice: str = typer.Option(
+        "markdown", "--format", "-f", help="Output report format choices: markdown, pdf, all"
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
+):
+    """
+    Run an automated BOLA/IDOR vulnerability scan against the target REST API.
+    """
+    console.print(
+        Panel.fit(
+            f"[bold cyan]LeakRadar API Security Scanner v0.1.0[/bold cyan]\n"
+            f"Target Base URL: [bold]{base_url}[/bold]\n"
+            f"OpenAPI Spec: [bold]{spec}[/bold]",
+            title="Scan Initialization",
+        )
+    )
+
+    lic_ctx = LicenseManager.get_active_context()
+    if verbose:
+        console.print(f"[dim]License status: active={lic_ctx.active}, tier={lic_ctx.tier}[/dim]")
+
+    # Check format permissions
+    if format_choice.lower() in ("pdf", "all") and not lic_ctx.capabilities.get("pdf_export", True):
+        console.print(
+            "[yellow]Warning: PDF export is a paid feature. Free tier will fall back to Markdown export.[/yellow]"
+        )
+
+    # 1. Parse OpenAPI Spec
+    try:
+        spec_data = _load_openapi_spec(spec)
+        paths = spec_data.get("paths", {})
+        target_name = spec_data.get("info", {}).get("title", "Target REST API")
+    except Exception as e:
+        console.print(f"[bold red]Failed to load spec:[/bold red] {e}")
+        raise typer.Exit(code=1)
+
+    # Prepare Headers
+    headers_a = {"Authorization": token_a if token_a.startswith("Bearer ") else f"Bearer {token_a}"}
+    headers_b = {"Authorization": token_b if token_b.startswith("Bearer ") else f"Bearer {token_b}"}
+
+    # 2. OpenAPI Seeding (User A)
+    console.print("[bold blue][1/3] Harvesting resources and computing baseline volatility as User A...[/bold blue]")
+    seeder = OpenAPISeeder(base_url=base_url, user_a_headers=headers_a)
+    seed_result = seeder.seed_endpoints(paths)
+
+    console.print(f"Discovered [bold green]{len(seed_result.resources)}[/bold green] baseline resource combinations.")
+    if verbose:
+        for w in seed_result.warnings:
+            console.print(f"[dim yellow]Warning: {w}[/dim yellow]")
+
+    if not seed_result.resources:
+        console.print("[bold yellow]No valid resource seeds could be fetched. Exiting scan.[/bold yellow]")
+        raise typer.Exit(code=0)
+
+    # 3. Cross-Token Replay & Matrix Evaluation (User B)
+    console.print("[bold blue][2/3] Replaying resource requests as User B (Attacker)...[/bold blue]")
+    matrix_runner = BolaMatrixRunner(user_b_headers=headers_b)
+    findings = matrix_runner.run(seed_result)
+
+    # Display Findings Table
+    table = Table(title="LeakRadar Vulnerability Summary", show_header=True, header_style="bold magenta")
+    table.add_column("Endpoint", style="cyan")
+    table.add_column("Params", style="dim")
+    table.add_column("Status", justify="center")
+    table.add_column("Overlap", justify="right")
+    table.add_column("Confidence", justify="center")
+
+    for f in findings:
+        conf_style = "bold red" if f.confidence == "high" else "bold yellow"
+        param_desc = json.dumps(f.seed.param_values)
+        table.add_row(
+            f.seed.endpoint_template,
+            param_desc,
+            str(f.probe_status_code),
+            f"{f.overlap_score * 100:.1f}%",
+            f"[{conf_style}]{f.confidence.upper()}[/{conf_style}]",
+        )
+
+    console.print(table)
+
+    # 4. Report Generation
+    console.print("[bold blue][3/3] Generating redacted proof-of-concept reports...[/bold blue]")
+    os.makedirs(output, exist_ok=True)
+
+    custom_tokens = [token_a, token_b]
+
+    # Markdown Export
+    if format_choice.lower() in ("markdown", "all", "pdf"):
+        for f in findings:
+            filename = _generate_collision_proof_filename(f)
+            md_content = MarkdownPoCExporter.export(f, target_name=target_name, custom_tokens=custom_tokens)
+            md_path = os.path.join(output, f"{filename}.md")
+            with open(md_path, "w", encoding="utf-8") as file_out:
+                file_out.write(md_content)
+            console.print(f"Saved Markdown PoC: [bold green]{md_path}[/bold green]")
+
+    # PDF Export
+    if format_choice.lower() in ("pdf", "all"):
+        pdf_path = os.path.join(output, "LeakRadar_Audit_Report.pdf")
+        PDFReportGenerator.generate(
+            findings=findings,
+            target_name=target_name,
+            output_path=pdf_path,
+            client_name="Client Audit",
+            custom_tokens=custom_tokens,
+        )
+        console.print(f"Saved Executive PDF Report: [bold green]{pdf_path}[/bold green]")
+
+    console.print(
+        Panel.fit(
+            f"[bold green]Scan Completed Successfully![/bold green]\n"
+            f"Total Findings: [bold]{len(findings)}[/bold]\n"
+            f"Output Directory: [bold]{output}[/bold]",
+            title="Scan Finished",
+        )
+    )
+
+
+if __name__ == "__main__":
+    app()

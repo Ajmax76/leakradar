@@ -1,0 +1,2 @@
+[console_scripts]
+leakradar = leakradar.cli:app
