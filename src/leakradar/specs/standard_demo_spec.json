@@ -1,0 +1,37 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Standard REST API Benchmark Target",
+    "version": "1.0.0",
+    "description": "Standard API specification benchmark for BOLA/IDOR vulnerability scanning."
+  },
+  "paths": {
+    "/users/v1/{username}": {
+      "get": {
+        "summary": "Fetch User Profile",
+        "parameters": [
+          { "name": "username", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "User Profile Object" } }
+      }
+    },
+    "/orders/v1/{order_id}": {
+      "get": {
+        "summary": "Fetch Order Details",
+        "parameters": [
+          { "name": "order_id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Order Object" } }
+      }
+    },
+    "/documents/v1/{doc_id}": {
+      "get": {
+        "summary": "Fetch Confidential Document",
+        "parameters": [
+          { "name": "doc_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Document Object" } }
+      }
+    }
+  }
+}
