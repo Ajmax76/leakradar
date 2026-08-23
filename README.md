@@ -67,15 +67,16 @@ leakradar scan \
 
 ---
 
-## 📊 Feature Matrix (Community vs Pro Auditor)
+## 📊 Feature Matrix (Community vs Pro Auditor vs Enterprise)
 
-| Feature | Community Edition (Free) | Pro Auditor ($30/mo) |
-| :--- | :---: | :---: |
-| **BOLA / IDOR Detection Engine** | ✅ Full Engine | ✅ Full Engine |
-| **Redacted Markdown PoC Export** | ✅ Included | ✅ Included |
-| **Scan Speed Mode** | ⏱️ 1.5s Throttled | ⚡ **Maximum Speed (0s delay)** |
-| **Executive PDF Reports** | ❌ Locked | 📄 **Full Executive PDF Deliverables** |
-| **Custom White-Label Branding** | ❌ Locked | 🏢 **Custom Logo & Company** |
+| Feature | Community Edition (Free) | Pro Auditor ($30/mo) | Enterprise / Custom |
+| :--- | :---: | :---: | :---: |
+| **BOLA / IDOR Detection Engine** | ✅ Full Engine | ✅ Full Engine | ✅ Full Engine |
+| **Redacted Markdown PoC Export** | ✅ Included | ✅ Included | ✅ Included |
+| **Scan Speed Mode** | ⏱️ 1.5s Throttled | ⚡ **Maximum Speed (0s delay)** | ⚡ **Unlimited Parallel Threads** |
+| **Executive PDF Reports** | ❌ Locked | 📄 **Full PDF Deliverables** | 📄 **Full PDF Deliverables** |
+| **Custom White-Label Branding** | ❌ Locked | 🏢 **Custom Logo & Company** | 🏢 **Custom Logo & Company** |
+| **Commercial Audit Rights** | Non-Commercial Only | ✅ Solo Security Auditors | 🏢 **Organization-Wide License** |
 
 ---
 
