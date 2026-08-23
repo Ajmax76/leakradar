@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 import httpx
+import json
 
 from leakradar.canonicalizer import ErrorDetector, normalize_value, strip_paths
 from leakradar.seeder import ResourceSeed, SeedResult
@@ -112,10 +113,12 @@ class BolaMatrixRunner:
         user_b_headers: Dict[str, str],
         client: Optional[httpx.Client] = None,
         allow_destructive: bool = False,
+        audit_log: Optional[Callable] = None,
     ):
         self.user_b_headers = user_b_headers
         self.client = client or httpx.Client(timeout=10.0, follow_redirects=True)
         self.allow_destructive = allow_destructive
+        self.audit_log = audit_log
 
     def _build_probe_url(self, seed: ResourceSeed) -> str:
         url = seed.endpoint_template
@@ -131,12 +134,16 @@ class BolaMatrixRunner:
     def _send_probe(self, method: str, url: str) -> Tuple[int, Any]:
         try:
             resp = self.client.request(method, url, headers=self.user_b_headers)
+            if self.audit_log:
+                self.audit_log("probe", method, url, resp.status_code, False)
             try:
                 data = resp.json()
             except Exception:
                 data = resp.text
             return resp.status_code, data
         except Exception as e:
+            if self.audit_log:
+                self.audit_log("probe", method, url, 500, False)
             return 500, str(e)
 
     def _classify(
@@ -234,10 +241,13 @@ class BolaMatrixRunner:
                 continue
 
             method_upper = seed.method.upper()
+            probe_url = self._build_probe_url(seed)
             if method_upper not in ("GET", "HEAD") and not self.allow_destructive:
                 seed_result.warnings.append(
                     f"Detected state-modifying endpoint {method_upper} {seed.endpoint_template} but skipped probing (safe mode) — re-run with --allow-destructive to test."
                 )
+                if self.audit_log:
+                    self.audit_log("probe", method_upper, probe_url, 0, True)
                 continue
 
             # Enforce Free Tier Rate Throttling in Core Engine Loop
@@ -247,7 +257,7 @@ class BolaMatrixRunner:
             if lic_ctx.tier.lower() == "free":
                 time.sleep(1.5)
 
-            probe_url = self._build_probe_url(seed)
+            # probe_url already built above
             status_code, probe_raw = self._send_probe(seed.method, probe_url)
 
             # Error check

@@ -3,7 +3,7 @@ import itertools
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 import httpx
 
 from leakradar.canonicalizer import ErrorDetector, extract_volatile_paths
@@ -189,10 +189,11 @@ class OpenAPISeeder:
     Discovers resource IDs and builds ResourceSeed instances from OpenAPI specs.
     """
 
-    def __init__(self, base_url: str, user_a_headers: Dict[str, str], client: Optional[httpx.Client] = None):
+    def __init__(self, base_url: str, user_a_headers: Dict[str, str], client: Optional[httpx.Client] = None, audit_log: Optional[Callable] = None):
         self.base_url = base_url.rstrip("/")
         self.user_a_headers = user_a_headers
         self.client = client or httpx.Client(timeout=10.0, follow_redirects=True)
+        self.audit_log = audit_log
         self.param_pool: Dict[str, List[Any]] = JWTClaimHarvester.harvest_from_headers(user_a_headers)
 
     def _extract_path_params(self, path: str) -> List[str]:
@@ -230,6 +231,9 @@ class OpenAPISeeder:
 
             try:
                 resp = self.client.request(method.upper(), url, headers=self.user_a_headers)
+                if self.audit_log:
+                    self.audit_log("baseline", method, url, resp.status_code, False)
+                    
                 is_err, _ = ErrorDetector.is_error_payload(resp.status_code, resp.text)
                 if is_err:
                     return False, [], set()
@@ -238,7 +242,9 @@ class OpenAPISeeder:
                 except Exception:
                     return False, [], set()
                 responses.append(data)
-            except Exception:
+            except Exception as e:
+                if self.audit_log:
+                    self.audit_log("baseline", method, url, 500, False)
                 return False, [], set()
 
         if len(responses) < 3:

@@ -222,9 +222,30 @@ def scan_command(
     headers_a = {"Authorization": token_a if token_a.startswith("Bearer ") else f"Bearer {token_a}"}
     headers_b = {"Authorization": token_b if token_b.startswith("Bearer ") else f"Bearer {token_b}"}
 
+    # Setup Audit Logging
+    out_dir = Path(output)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    audit_log_file = out_dir / "scan_audit.log"
+    
+    def audit_log(phase: str, method: str, url: str, status: int, skipped: bool):
+        import datetime
+        try:
+            entry = {
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "phase": phase,
+                "method": method.upper(),
+                "url": url,
+                "status_code": status,
+                "skipped": skipped
+            }
+            with open(audit_log_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry) + "\n")
+        except Exception:
+            pass
+
     # 2. OpenAPI Seeding (User A)
     console.print("[bold blue][1/3] Harvesting resources and computing baseline volatility as User A...[/bold blue]")
-    seeder = OpenAPISeeder(base_url=base_url, user_a_headers=headers_a)
+    seeder = OpenAPISeeder(base_url=base_url, user_a_headers=headers_a, audit_log=audit_log)
     seed_result = seeder.seed_endpoints(paths)
 
     console.print(f"Discovered [bold green]{len(seed_result.resources)}[/bold green] baseline resource combinations.")
@@ -242,7 +263,7 @@ def scan_command(
         import time
         time.sleep(rate_delay)
 
-    matrix_runner = BolaMatrixRunner(user_b_headers=headers_b, allow_destructive=allow_destructive)
+    matrix_runner = BolaMatrixRunner(user_b_headers=headers_b, allow_destructive=allow_destructive, audit_log=audit_log)
     findings = matrix_runner.run(seed_result)
 
     # Display Findings Table
