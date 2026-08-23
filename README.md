@@ -116,14 +116,24 @@ For organizations requiring custom capabilities, the **Enterprise Tier** provide
 
 ## 🧪 Local Demo Target
 
-A vulnerable BOLA REST API testbed is provided in `demo_target/app.py`:
+A vulnerable BOLA REST API testbed is provided in [`demo_target/app.py`](demo_target/app.py). It includes:
+* **Authentication Endpoint (`/api/v1/auth/login`)**: Issues standard 3-part Bearer JWT tokens for two distinct users (`user_101` and `user_102`).
+* **Two Vulnerable BOLA Endpoints**: `GET /api/v1/patients/{patient_id}/records` and `GET /api/v1/users/{user_id}/profile` (both handlers decode the caller's JWT identity, but fail to verify resource ownership).
+* **One Secured Control Endpoint**: `GET /api/v1/users/{user_id}/billing` (decodes caller identity AND enforces ownership checks, returning `403 Forbidden` on mismatch to verify false positive suppression).
 
 ```bash
+# Start the demo target REST API
 python demo_target/app.py
 ```
 
 ---
 
-## 📄 License
+## 📄 License & Commercial Terms
 
-Governed by the **PolyForm Noncommercial License 1.0.0**. Free for security researchers, academic research, and non-commercial open-source vulnerability testing.
+The core open-source codebase is licensed under the verbatim **[PolyForm Noncommercial License 1.0.0](LICENSE)**.
+
+* **Non-Commercial Use**: Free for security researchers, academic evaluation, and non-commercial vulnerability testing.
+* **Commercial Use**: Using LeakRadar for paid client security audits, managed security services (MSSP), or commercial products is governed by our **[Commercial Terms](COMMERCIAL-TERMS.md)**.
+
+> *Note: Organizations deploying LeakRadar commercially should conduct formal legal review of commercial licensing agreements.*
+

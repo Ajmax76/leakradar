@@ -1,18 +1,39 @@
 PolyForm Noncommercial License 1.0.0
 
-Copyright (c) 2026 LeakRadar. All rights reserved.
+https://polyformproject.org/licenses/noncommercial/1.0.0
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+Acceptance
 
-1. Commercial & Revenue Use Restriction: You may NOT use this software to generate revenue, perform paid client security audits, provide managed security services, or bundle this software into commercial products without purchasing a valid Pro Auditor or Enterprise commercial license key.
+In order to receive this license, you must agree to its rules. The rules of this license are conditions to all your rights under it. If you do not agree to such a rule, you do not have this license, and you may not exercise any of the rights it would grant.
 
-2. Anti-Circumvention & Civil Liability: Any attempt to tamper with, modify, reverse-engineer, or bypass the licensing authentication, key verification, or capability gating mechanisms of this software for commercial gain is strictly prohibited under international copyright laws, including 17 U.S.C. § 1201 (DMCA Anti-Circumvention) and the WIPO Copyright Treaty. Willful circumvention subjects violators to statutory civil damages up to $150,000 per infringement violation, immediate injunctive relief, and full recovery of legal fees.
+Copyright License
 
-3. Attribution: Notice of copyright and this license must be retained in all copies or substantial portions of the software.
+The licensor grants you a copyright license to make changes to and distribute the software, and to make, use, and share copies of the software, for noncommercial purposes only.
 
-4. Patent License: Grant of Patent License as specified under PolyForm Noncommercial 1.0.0 terms.
+Patent License
 
-5. No Commercial Rebranding or Derivative Products: Creating commercial SaaS services, white-label re-distributions, or derivative products based on the LeakRadar architecture for commercial exploitation without an Enterprise License is strictly prohibited.
+The licensor grants you a patent license to make, use, sell, and offer for sale the software, and to practice any patent claims the licensor can license, for noncommercial purposes only.
 
-For commercial licensing requests and Pro Auditor passes, visit https://github.com/Ajmax76/leakradar.
+Noncommercial Purposes
 
+Noncommercial purposes are purposes that are not primarily intended for or directed towards commercial advantage or monetary compensation.
+
+Notice
+
+You must ensure that anyone who gets a copy of any part of this software from you also gets a copy of this license and all the notices in this file.
+
+No Other Rights
+
+These licenses do not grant any other rights. All other rights are reserved by the licensor.
+
+Fair Use
+
+This license does not limit any rights under fair use, fair dealing, or other exceptions to copyright.
+
+Anti-Sublicensing
+
+You may not sublicense this software or any part of it.
+
+No Liability
+
+As far as the law allows, this software comes as is, without any warranty or condition, and the licensor will not be liable to anyone for any damages related to the software or this license, under any kind of legal claim.
