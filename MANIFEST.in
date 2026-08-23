@@ -1,0 +1,2 @@
+recursive-exclude src/leakradar/_pro *
+prune src/leakradar/_pro

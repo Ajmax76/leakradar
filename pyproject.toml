@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leakradar-cli"
-version = "0.1.1"
+version = "0.2.0"
 description = "API Security Reconnaissance & BOLA Evidence Engine"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -24,3 +24,4 @@ leakradar = "leakradar.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["leakradar._pro", "leakradar._pro.*"]

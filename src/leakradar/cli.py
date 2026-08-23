@@ -234,7 +234,7 @@ def scan_command(
 
     console.print(
         Panel.fit(
-            f"[bold cyan]LeakRadar API Security Scanner v0.1.0[/bold cyan]\n"
+            f"[bold cyan]LeakRadar API Security Scanner v{__version__}[/bold cyan]\n"
             f"Target Base URL: [bold]{base_url}[/bold]\n"
             f"OpenAPI Spec: [bold]{spec}[/bold]\n"
             f"Scan Speed Mode: {'[yellow]Rate-Limited (Free)[/yellow]' if is_free else '[green]Maximum Speed (Pro)[/green]'}\n"
