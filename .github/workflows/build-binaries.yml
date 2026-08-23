@@ -42,22 +42,17 @@ jobs:
 
       - name: Checkout Pro submodule (Windows)
         if: runner.os == 'Windows'
+        shell: powershell
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PRO_SUBMODULE_DEPLOY_KEY }}
-        shell: powershell
         run: |
-          # Write key to temp file with correct permissions
-          $keyDir = New-Item -ItemType Directory -Path "$env:RUNNER_TEMP\ssh" -Force
-          $keyPath = "$env:RUNNER_TEMP\ssh\deploy_key"
+          $keyPath = "$env:RUNNER_TEMP\deploy_key"
           [IO.File]::WriteAllText($keyPath, $env:SSH_PRIVATE_KEY)
-          # Restrict permissions to current user only (required by OpenSSH)
-          icacls $keyPath /inheritance:r | Out-Null
-          icacls $keyPath /grant:r "${env:USERNAME}:(R)" | Out-Null
-          # Add github.com to known_hosts to avoid interactive prompt
+          icacls $keyPath /inheritance:r /grant "${env:USERNAME}:R" | Out-Null
           New-Item -ItemType Directory -Force "$env:USERPROFILE\.ssh" | Out-Null
-          ssh-keyscan -t ed25519 github.com 2>$null | Add-Content "$env:USERPROFILE\.ssh\known_hosts"
-          # Pull submodule using this key
-          $env:GIT_SSH_COMMAND = "ssh -i `"$keyPath`" -o StrictHostKeyChecking=accept-new"
+          $knownHosts = "$env:USERPROFILE\.ssh\known_hosts"
+          ssh-keyscan -t ed25519 github.com 2>$null | Out-File -Append -FilePath $knownHosts -Encoding ascii
+          $env:GIT_SSH_COMMAND = "ssh -i `"$keyPath`" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=`"$knownHosts`""
           git submodule update --init --recursive
           Remove-Item $keyPath -Force -ErrorAction SilentlyContinue
 
