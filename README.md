@@ -105,6 +105,13 @@ Execute `leakradar scan` against your target API server and OpenAPI specificatio
 | **Custom White-Label Branding** | ❌ Locked | 🏢 **Custom Logo & Company** | 🏢 **Custom Logo & Company** |
 | **Commercial Audit Rights** | Non-Commercial Only | ✅ Solo Security Auditors | 🏢 **Organization-Wide License** |
 
+### 🏢 Enterprise & Custom Licensing
+For organizations requiring custom capabilities, the **Enterprise Tier** provides:
+* **Custom Auth Adapters**: Tailored support for complex authentication flows (Okta SSO, mTLS, custom header handshakes, dynamic CSRF tokens).
+* **Air-Gapped & On-Prem Deployment**: Private execution within isolated corporate networks without external licensing checks.
+* **Organization-Wide Rights**: Unlimited security team members and automated CI/CD pipeline scanning rights.
+* **Bespoke Compliance Deliverables**: Customized executive PDF reports mapped to SOC2, ISO27001, or HIPAA requirements.
+
 ---
 
 ## 🧪 Local Demo Target
