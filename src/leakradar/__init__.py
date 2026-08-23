@@ -2,4 +2,4 @@
 LeakRadar - Open-core API security CLI for BOLA/IDOR vulnerability scanning.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

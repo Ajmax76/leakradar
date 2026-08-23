@@ -17,6 +17,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from leakradar import __version__
 from leakradar.auth import LicenseManager
 from leakradar.bola_matrix import BolaMatrixRunner, Finding
 from leakradar.markdown_poc import MarkdownPoCExporter
@@ -362,7 +363,7 @@ def interactive_menu():
 
         console.print(
             Panel.fit(
-                f"[bold cyan]LeakRadar API Security Scanner v0.1.0[/bold cyan]\n"
+                f"[bold cyan]LeakRadar API Security Scanner v{__version__}[/bold cyan]\n"
                 f"[dim]Autonomous BOLA / IDOR Vulnerability Detection Engine[/dim]\n"
                 f"License Status: {'[bold green]ACTIVE (' + lic_ctx.tier.upper() + ')[/bold green]' if lic_ctx.active else '[bold yellow]COMMUNITY EDITION (FREE)[/bold yellow]'}",
                 title="Welcome to LeakRadar",
