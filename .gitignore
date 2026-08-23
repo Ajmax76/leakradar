@@ -19,3 +19,5 @@ test_run/
 # Pro proprietary files (compiled into binary, hidden from git repository)
 src/leakradar/pdf_report.py
 src/leakradar/specs/pro_enterprise_spec.json
+demo_findings/
+

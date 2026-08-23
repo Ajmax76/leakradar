@@ -187,6 +187,17 @@ def scan_command(
             )
         )
 
+    BANNER = (
+        "[bold cyan]  _        ______    _    _   _____            _____            _____       _____  [/bold cyan]\n"
+        "[bold cyan] | |      |  ____|  / \\  | | / ____|          |  __ \\    /\\    |  __ \\  /\\  |  __ \\ [/bold cyan]\n"
+        "[bold cyan] | |      | |__    / _ \\ | || |     _   _ ___ | |__) |  /  \\   | |  | |/  \\ | |__) |[/bold cyan]\n"
+        "[bold cyan] | |      |  __|  / ___ \\| || |    | | | / __||  _  /  / /\\ \\  | |  | / /\\ \\|  _  / [/bold cyan]\n"
+        "[bold cyan] | |____  | |____/ /   \\ \\ || |____| |_| \\__ \\| | \\ \\ / ____ \\ | |__| / ____ \\ | \\ \\ [/bold cyan]\n"
+        "[bold cyan] |______| |______/_/     \\_\\_\\_____|\\__,_|___/|_|  \\_/_/    \\_\\|_____/_/    \\_\\_|  \\_\\[/bold cyan]\n"
+        "[dim]                    [ OPEN-CORE API BOLA SECURITY ENGINE ][/dim]\n"
+    )
+    console.print(BANNER)
+
     if is_free:
         console.print(
             Panel.fit(

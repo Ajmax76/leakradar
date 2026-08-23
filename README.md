@@ -1,103 +1,100 @@
-# ⚡ LeakRadar
+<div align="center">
+  <br />
+  <img src="assets/logo.png" alt="LeakRadar Logo" width="140" />
+  <h1>LeakRadar</h1>
+  <p><strong>Open-Core API Security Engine for Automated BOLA & IDOR Vulnerability Scanning</strong></p>
 
-[![CI Pipeline](https://github.com/ajmax76/leakradar/actions/workflows/ci.yml/badge.svg)](https://github.com/ajmax76/leakradar/actions)
-[![Python Versions](https://img.shields.io/pypi/pyversions/leakradar.svg)](https://pypi.org/project/leakradar/)
+  [![CI Pipeline](https://github.com/Ajmax76/leakradar/actions/workflows/ci.yml/badge.svg)](https://github.com/Ajmax76/leakradar/actions)
+  [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+  [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-green.svg)](LICENSE)
+  <br /><br />
+</div>
 
-**LeakRadar** is an automated API security reconnaissance engine designed to detect **Broken Object Level Authorization (BOLA / IDOR)** vulnerabilities and exposed secrets across REST endpoints with near-zero false positives.
+---
+
+## ⚡ Overview
+
+**LeakRadar** is an open-core DAST scanner designed specifically for REST APIs. It detects **Broken Object Level Authorization (BOLA / IDOR)** defects, token privilege escalation, and exposed secrets with near-zero false positives using a cross-token pairwise heuristic matrix algorithm.
+
+```text
+                        LeakRadar Vulnerability Summary                        
++-----------------------------------------------------------------------------+
+| Endpoint             | Params               | Status | Overlap | Confidence |
+|----------------------+----------------------+--------+---------+------------|
+| /api/v1/patients/{p} | {"patient_id":       |  200   |  100.0% |    HIGH    |
+|                      | "REC-9901"}          |        |         |            |
++-----------------------------------------------------------------------------+
+[3/3] Generating redacted proof-of-concept reports...
+Saved Markdown PoC: demo_findings/bola_api_v1_patients_patient_id_records.md
++--------- Scan Finished ---------+
+| Scan Completed Successfully!    |
+| Total Findings: 1               |
++---------------------------------+
+```
 
 ---
 
 ## 🌟 Key Features
 
-* **3-Baseline Volatility Diffing:** Executes triple User A baselines to prune volatile fields (timestamps, nonces, session tokens) before cross-token evaluation.
-* **JWT Claim Harvesting:** Automatically parses bearer token claims (`sub`, `user_id`, `email`) to discover seed values for parameterized routes (`/api/users/{user_id}`).
-* **Cross-Token Replay Matrix:** Replays candidate endpoints using User B's authentication identity and measures leaf-level scalar field overlap, ID echoing, and ownership matches.
-* **Payload Secret Scanner:** Built-in Shannon entropy filter ($\ge 4.5$) and targeted regex rules for AWS keys, Stripe tokens, private keys, and API tokens.
-* **Double-Click Standalone Executable:** Includes a zero-dependency interactive terminal menu for double-click execution on Windows (`.exe`), Linux, and macOS.
-* **Bundled Benchmark Spec Suites:** Includes standard & enterprise multi-service OpenAPI specs out-of-the-box for instant benchmark scanning.
+* **3-Baseline Volatility Diffing:** Prunes volatile fields (timestamps, nonces, session IDs) across triple User A baselines before cross-token evaluation.
+* **JWT Claim Harvesting:** Automatically parses bearer token claims (`sub`, `user_id`, `email`) to seed parameterized endpoints (`/api/v1/patients/{patient_id}`).
+* **Cross-Token Replay Matrix:** Replays harvested endpoints using User B's identity, evaluating leaf-level scalar field overlap, ID echoing, and ownership matches.
+* **Payload Secret Scanner:** Integrated Shannon entropy analysis ($\ge 4.5$) and regex rules for AWS keys, Stripe tokens, private keys, and API credentials.
+* **Redacted PoC Deliverables:** Exports Markdown & Executive PDF reports with auto-redacted authorization tokens and proof steps.
 
 ---
 
-## 🚀 Download & Execution Options
+## 🚀 Quick Start
 
-### Option A: Standalone Double-Click Executable (Recommended)
-
-1. Download **`leakradar.exe`** (Windows) or native binary from the **GitHub Releases** page.
-2. Double-click **`leakradar.exe`** to open the interactive terminal dashboard:
-
-```text
-╭───────────────────── Welcome to LeakRadar ─────────────────────╮
-│ LeakRadar API Security Scanner v0.1.0                          │
-│ Autonomous BOLA / IDOR Vulnerability Detection Engine          │
-│ License Status: COMMUNITY EDITION (FREE)                       │
-╰────────────────────────────────────────────────────────────────╯
-
-Select an action:
-  1 Run BOLA Vulnerability Scan
-  2 Activate License Key (auth)
-  3 View Command Help
-  4 Exit
-```
-
----
-
-### Option B: Command Line Interface (CLI)
+### Installation
 
 ```bash
-# Activate Paid Pro License
-leakradar auth --key "lr_live_..."
-
-# Run API Vulnerability Scan
-leakradar scan \
-  --base-url "https://api.example.com" \
-  --spec "https://api.example.com/openapi.json" \
-  --token-a "JWT_TOKEN_VICTIM" \
-  --token-b "JWT_TOKEN_ATTACKER" \
-  --output "./findings" \
-  --format all
-```
-
----
-
-## 📊 Tier Comparison (Community vs. Pro Auditor)
-
-| Feature | Community Edition (Free) | Pro Auditor Edition ($30/mo) |
-| :--- | :---: | :---: |
-| **BOLA / IDOR Detection Engine** | ✅ Full Engine | ✅ Full Engine |
-| **Redacted Markdown PoC Reports** | ✅ Included | ✅ Included |
-| **Bundled Benchmark Specs** | Standard Spec | **30+ Endpoint Enterprise Suite** |
-| **Scan Speed Mode** | ⏱️ 1.5s Throttled | ⚡ **Maximum Speed (0.0s delay)** |
-| **Executive PDF Reports** | ❌ Locked | 📄 **Full Executive PDF Deliverables** |
-| **White-Label Branding** | ❌ Locked | 🏢 **Custom Logo & Company (`--company`, `--logo`)** |
-
----
-
-## 🛠 Local Development & Testing
-
-1. Clone repository:
-```bash
-git clone https://github.com/ajmax76/leakradar.git
+git clone https://github.com/Ajmax76/leakradar.git
 cd leakradar
-```
-
-2. Set up virtual environment:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
 pip install -e .
 ```
 
-3. Run automated unit test suite:
+### Run BOLA Vulnerability Scan
+
 ```bash
-pytest tests/test_unit_matrix.py -v
+leakradar scan \
+  --base-url "http://127.0.0.1:8000" \
+  --spec "http://127.0.0.1:8000/openapi.json" \
+  --token-a "<VICTIM_USER_JWT>" \
+  --token-b "<ATTACKER_USER_JWT>" \
+  --output "./findings"
 ```
 
 ---
 
-## 📄 License & Distribution
+## 📊 Feature Matrix (Community vs Pro Auditor)
 
-LeakRadar is governed by the **PolyForm Noncommercial License 1.0.0**.
+| Feature | Community Edition (Free) | Pro Auditor ($30/mo) |
+| :--- | :---: | :---: |
+| **BOLA / IDOR Detection Engine** | ✅ Full Engine | ✅ Full Engine |
+| **Redacted Markdown PoC Export** | ✅ Included | ✅ Included |
+| **Scan Speed Mode** | ⏱️ 1.5s Throttled | ⚡ **Maximum Speed (0s delay)** |
+| **Executive PDF Reports** | ❌ Locked | 📄 **Full Executive PDF Deliverables** |
+| **Custom White-Label Branding** | ❌ Locked | 🏢 **Custom Logo & Company** |
 
-- **Non-Commercial Use**: Free for individual security researchers, academic research, and non-commercial open-source vulnerability testing.
-- **Commercial & Revenue Use**: Using LeakRadar to offer paid client audits, managed security services, or commercial software products strictly requires a **Pro Auditor** or **Enterprise** commercial license key via Dodo Payments.
+---
 
+## 🧪 Local Demo Target
+
+A vulnerable BOLA REST API testbed is provided in `demo_target/app.py`:
+
+```bash
+python demo_target/app.py
+```
+
+---
+
+## 🏷️ Recommended GitHub Topics
+When setting repository tags on GitHub, use:
+`cybersecurity`, `api-security`, `bola`, `idor`, `dast`, `vulnerability-scanner`, `python`, `security-tools`
+
+---
+
+## 📄 License
+
+Governed by the **PolyForm Noncommercial License 1.0.0**. Free for security researchers, academic research, and non-commercial open-source vulnerability testing.
