@@ -89,12 +89,6 @@ python demo_target/app.py
 
 ---
 
-## 🏷️ Recommended GitHub Topics
-When setting repository tags on GitHub, use:
-`cybersecurity`, `api-security`, `bola`, `idor`, `dast`, `vulnerability-scanner`, `python`, `security-tools`
-
----
-
 ## 📄 License
 
 Governed by the **PolyForm Noncommercial License 1.0.0**. Free for security researchers, academic research, and non-commercial open-source vulnerability testing.
