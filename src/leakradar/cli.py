@@ -3,6 +3,9 @@ import hashlib
 import json
 import os
 import sys
+import socket
+import ipaddress
+import contextlib
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -27,16 +30,56 @@ app = typer.Typer(
 console = Console()
 
 
-def _load_openapi_spec(spec_path_or_url: str) -> Dict[str, Any]:
+@contextlib.contextmanager
+def safe_dns_resolver(allow_internal: bool):
+    original_getaddrinfo = socket.getaddrinfo
+    
+    def safe_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+        results = original_getaddrinfo(host, port, family, type, proto, flags)
+        
+        if allow_internal:
+            return results
+            
+        safe_results = []
+        for res in results:
+            ip_str = res[4][0]
+            try:
+                ip = ipaddress.ip_address(ip_str)
+            except ValueError:
+                safe_results.append(res)
+                continue
+                
+            if (ip.is_private or ip.is_loopback or ip.is_link_local or
+                ip.is_reserved or ip.is_multicast):
+                raise ValueError(f"SSRF Protection blocked connection to restricted IP: {ip_str} for host: {host}")
+            
+            safe_results.append(res)
+            
+        if not safe_results:
+            raise ValueError(f"No safe IP addresses found for {host}")
+        return safe_results
+
+    socket.getaddrinfo = safe_getaddrinfo
+    try:
+        yield
+    finally:
+        socket.getaddrinfo = original_getaddrinfo
+
+
+def _load_openapi_spec(spec_path_or_url: str, allow_internal: bool = False) -> Dict[str, Any]:
     """
     Fetch and parse an OpenAPI specification from a local file or HTTP URL (JSON or YAML).
     """
     content = ""
     if spec_path_or_url.startswith("http://") or spec_path_or_url.startswith("https://"):
-        with httpx.Client(timeout=15.0, follow_redirects=True) as client:
-            resp = client.get(spec_path_or_url)
-            resp.raise_for_status()
-            content = resp.text
+        with safe_dns_resolver(allow_internal):
+            with httpx.Client(timeout=15.0, follow_redirects=True) as client:
+                try:
+                    resp = client.get(spec_path_or_url)
+                    resp.raise_for_status()
+                    content = resp.text
+                except Exception as e:
+                    raise ValueError(f"Failed to fetch spec from URL: {e}")
     else:
         p = Path(spec_path_or_url)
         if not p.exists():
@@ -112,6 +155,11 @@ def scan_command(
         "--allow-destructive",
         help="Allow probing of POST/PUT/PATCH/DELETE state-modifying endpoints during scan",
     ),
+    allow_internal_spec: bool = typer.Option(
+        False,
+        "--allow-internal-spec",
+        help="Allow `--spec` to fetch OpenAPI files from loopback, private, or link-local IPs. WARNING: Exposes SSRF if abused.",
+    ),
 ):
     """
     Run an automated BOLA/IDOR vulnerability scan against the target REST API.
@@ -163,7 +211,7 @@ def scan_command(
 
     # 1. Parse OpenAPI Spec
     try:
-        spec_data = _load_openapi_spec(spec)
+        spec_data = _load_openapi_spec(spec, allow_internal=allow_internal_spec)
         paths = spec_data.get("paths", {})
         target_name = spec_data.get("info", {}).get("title", "Target REST API")
     except Exception as e:
