@@ -184,4 +184,28 @@ class LicenseManager:
 
     @classmethod
     def get_active_context(cls) -> LicenseContext:
-        return cls.load_cached_license()
+        ctx = cls.load_cached_license()
+        
+        # Check maximum cache validity independent of expires_at (7-day cap)
+        if ctx.active and ctx.tier.lower() in ("paid", "pro", "enterprise"):
+            try:
+                with open(cls.CACHE_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                
+                cached_at_str = data.get("cached_at") or data.get("activated_at")
+                if not cached_at_str:
+                    return LicenseContext(active=False, tier="free")
+                
+                cached_dt = datetime.fromisoformat(cached_at_str.replace("Z", "+00:00"))
+                days_since_cache = (datetime.now(timezone.utc) - cached_dt).days
+                
+                if days_since_cache >= 7:
+                    import asyncio
+                    from rich.console import Console
+                    Console().print("[dim]License cache older than 7 days. Re-validating with Dodo Payments...[/dim]")
+                    # If this fails (e.g. network down), activate_license explicitly fails closed to free tier.
+                    ctx = asyncio.run(cls.activate_license(ctx.key))
+            except Exception:
+                return LicenseContext(active=False, tier="free")
+                
+        return ctx

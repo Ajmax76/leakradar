@@ -330,3 +330,87 @@ def test_allow_destructive_probes_delete_seeds():
     assert probe_called[0] == ("DELETE", "http://localhost:5000/orders/order_123")
 
 
+def test_p1_stale_cache_requires_revalidation(tmp_path, monkeypatch):
+    """
+    Priority 1 Test: Cache > 7 days old forces revalidation (fails closed to free tier if network fails).
+    """
+    from leakradar.auth import LicenseManager
+    import leakradar.auth as auth_mod
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+    from datetime import datetime, timezone, timedelta
+    import json
+    
+    monkeypatch.setattr(LicenseManager, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(LicenseManager, "CACHE_FILE", tmp_path / "license.json")
+    
+    test_private_key = ed25519.Ed25519PrivateKey.generate()
+    test_public_hex = test_private_key.public_key().public_bytes_raw().hex()
+    monkeypatch.setattr(auth_mod, "ED25519_PUBLIC_KEY_HEX", test_public_hex)
+    
+    fingerprint = LicenseManager.get_machine_fingerprint()
+    key = "pdt_valid_test_key"
+    tier = "pro"
+    
+    # 8 days ago
+    past = (datetime.now(timezone.utc) - timedelta(days=8)).isoformat()
+    expires_at = None
+    
+    payload = f"{key}:{tier}:{expires_at or ''}:{fingerprint}".encode("utf-8")
+    signature = test_private_key.sign(payload).hex()
+
+    valid_data = {
+        "active": True,
+        "key": key,
+        "tier": tier,
+        "fingerprint": fingerprint,
+        "signature": signature,
+        "capabilities": {"pdf_export": True, "cloud_rules": True, "unlimited_scans": True},
+        "activated_at": past,
+        "expires_at": expires_at
+    }
+    with open(tmp_path / "license.json", "w", encoding="utf-8") as f:
+        json.dump(valid_data, f)
+        
+    ctx = LicenseManager.get_active_context()
+    
+    assert ctx.tier == "free"
+    assert ctx.active is False
+
+
+def test_p2_ssrf_protection_blocks_reserved_ips():
+    """
+    Priority 2 Test: Asserts that _load_openapi_spec blocks AWS metadata and localhost by default.
+    """
+    from leakradar.cli import _load_openapi_spec
+    import pytest
+    
+    # Cloud Metadata IPv4
+    with pytest.raises(ValueError, match="SSRF Protection blocked connection to restricted IP"):
+        _load_openapi_spec("http://169.254.169.254/latest/meta-data/")
+        
+    # Localhost
+    with pytest.raises(ValueError, match="SSRF Protection blocked connection to restricted IP"):
+        _load_openapi_spec("http://127.0.0.1/spec.json")
+        
+    with pytest.raises(ValueError, match="SSRF Protection blocked connection to restricted IP"):
+        _load_openapi_spec("http://localhost:8080/spec.json")
+
+
+def test_p2_allow_internal_spec_bypasses_restriction(monkeypatch):
+    """
+    Priority 2 Test: Asserts that --allow-internal-spec bypasses SSRF blocks.
+    """
+    from leakradar.cli import _load_openapi_spec
+    import httpx
+    
+    # Mock httpx.Client.get so we don't actually fetch from localhost and fail
+    def mock_get(*args, **kwargs):
+        class MockResp:
+            def raise_for_status(self): pass
+            text = '{"openapi": "3.0.0", "info": {"title": "Test"}}'
+        return MockResp()
+
+    monkeypatch.setattr(httpx.Client, "get", mock_get)
+
+    result = _load_openapi_spec("http://127.0.0.1/spec.json", allow_internal=True)
+    assert result["info"]["title"] == "Test"
