@@ -51,8 +51,8 @@ jobs:
           leakradar --help
           echo "CLI successfully boots without pdf_report.py!"
 
-      - name: Run E2E Test Suite
+      - name: Run Unit & E2E Test Suites
         env:
           VAMPI_BASE_URL: http://localhost:5000
         run: |
-          pytest tests/test_vampi_e2e.py -v
+          pytest tests/test_unit_matrix.py tests/test_vampi_e2e.py -v

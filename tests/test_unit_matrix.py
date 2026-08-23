@@ -5,7 +5,10 @@ from pathlib import Path
 from leakradar.bola_matrix import BolaMatrixRunner, Finding
 from leakradar.seeder import SeedResult, ResourceSeed
 from leakradar.markdown_poc import MarkdownPoCExporter
-from leakradar.pdf_report import PDFReportGenerator
+try:
+    from leakradar.pdf_report import PDFReportGenerator
+except ImportError:
+    PDFReportGenerator = None
 
 def test_unit_bola_matrix_and_reporting():
     # 1. Mock ResourceSeed harvested from User A
@@ -50,22 +53,63 @@ def test_unit_bola_matrix_and_reporting():
     assert "# [Vulnerability Report] Broken Object Level Authorization" in md_output
     assert "<REDACTED" in md_output
 
-    # 4. Test PDF Deliverable Generator
-    out_dir = Path("./tmp_unit_findings")
-    out_dir.mkdir(exist_ok=True)
-    pdf_path = out_dir / "unit_test_report.pdf"
+    # 4. Test PDF Deliverable Generator (If Pro extension present)
+    if PDFReportGenerator is not None:
+        out_dir = Path("./tmp_unit_findings")
+        out_dir.mkdir(exist_ok=True)
+        pdf_path = out_dir / "unit_test_report.pdf"
 
+        PDFReportGenerator.generate(
+            findings=[finding],
+            target_name="LeakRadar Unit Audit Target",
+            output_path=str(pdf_path),
+            custom_tokens=[token_a, token_b]
+        )
+
+        assert pdf_path.exists()
+        assert pdf_path.stat().st_size > 500
+
+        # Cleanup
+        if pdf_path.exists():
+            pdf_path.unlink()
+        if out_dir.exists():
+            out_dir.rmdir()
+
+
+def test_pdf_report_generator_pro_only():
+    """
+    Explicitly tests PDFReportGenerator if available, or skips if absent in open-source builds.
+    """
+    pytest.importorskip("leakradar.pdf_report")
+    from leakradar.pdf_report import PDFReportGenerator
+    out_dir = Path("./tmp_unit_findings_pro")
+    out_dir.mkdir(exist_ok=True)
+    pdf_path = out_dir / "unit_test_report_pro.pdf"
+    resource = ResourceSeed(
+        base_url="http://localhost:5000",
+        method="GET",
+        endpoint_template="/users/v1/{username}",
+        param_values={"username": "victim_user"},
+        baseline_responses=[{"username": "victim_user"}]
+    )
+    finding = Finding(
+        seed=resource,
+        probe_url="http://localhost:5000/users/v1/victim_user",
+        probe_method="GET",
+        probe_status_code=200,
+        confidence="high",
+        evidence_fields=[],
+        overlap_score=1.0,
+        baseline_representative={},
+        probe_response={},
+        secret_findings=[]
+    )
     PDFReportGenerator.generate(
         findings=[finding],
-        target_name="LeakRadar Unit Audit Target",
+        target_name="PDF Pro Test",
         output_path=str(pdf_path),
-        custom_tokens=[token_a, token_b]
     )
-
     assert pdf_path.exists()
-    assert pdf_path.stat().st_size > 500
-
-    # Cleanup
     if pdf_path.exists():
         pdf_path.unlink()
     if out_dir.exists():
