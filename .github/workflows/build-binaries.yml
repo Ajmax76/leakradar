@@ -1,26 +1,26 @@
-name: Build Cross-Platform Native Binaries with Nuitka
+name: Build Cross-Platform Standalone Binaries
 
 on:
   push:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build Nuitka binary on ${{ matrix.os }}
+    name: Build binary on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - os: windows-latest
-            target_name: leakradar-windows-amd64.exe
-            build_cmd: python -m nuitka --onefile --output-filename=leakradar-windows-amd64.exe src/leakradar/cli.py
+            artifact_name: leakradar-windows-x64.exe
           - os: ubuntu-latest
-            target_name: leakradar-linux-amd64
-            build_cmd: python -m nuitka --onefile --output-filename=leakradar-linux-amd64 src/leakradar/cli.py
+            artifact_name: leakradar-linux-x86_64
           - os: macos-latest
-            target_name: leakradar-macos-universal
-            build_cmd: python -m nuitka --onefile --output-filename=leakradar-macos-universal src/leakradar/cli.py
+            artifact_name: leakradar-macos-arm64
 
     steps:
       - name: Checkout repository
@@ -31,17 +31,30 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies & Nuitka
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install . nuitka
+          pip install pyinstaller pillow setuptools
+          pip install -e .
 
-      - name: Compile Native Binary with Nuitka
-        run: ${{ matrix.build_cmd }}
+      - name: Generate Icon (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          python -c "from PIL import Image; img=Image.open('assets/logo.png'); img.save('assets/logo.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])"
+
+      - name: Build Binary with PyInstaller (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller --onefile --name=leakradar-windows-x64 --icon=assets/logo.ico --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --exclude-module=leakradar.pdf_report src/leakradar/cli.py
+
+      - name: Build Binary with PyInstaller (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          pyinstaller --onefile --name=${{ matrix.artifact_name }} --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --exclude-module=leakradar.pdf_report src/leakradar/cli.py
 
       - name: Upload Binary Asset to GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: ${{ matrix.target_name }}
+          files: dist/${{ matrix.artifact_name }}*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
