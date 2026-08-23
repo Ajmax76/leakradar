@@ -14,21 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Source
+      - name: Checkout Source & Submodules
         uses: actions/checkout@v4
-
-      - name: Checkout Pro submodule
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.PRO_SUBMODULE_DEPLOY_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          eval $(ssh-agent -s)
-          ssh-add ~/.ssh/deploy_key
-          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
-          git submodule update --init --recursive
-          rm ~/.ssh/deploy_key
+        with:
+          ssh-key: ${{ secrets.PRO_SUBMODULE_DEPLOY_KEY }}
+          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v5
