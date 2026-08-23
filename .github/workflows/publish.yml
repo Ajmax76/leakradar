@@ -17,6 +17,19 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
+      - name: Checkout Pro submodule
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRO_SUBMODULE_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/deploy_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+          git submodule update --init --recursive
+          rm ~/.ssh/deploy_key
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -33,15 +46,8 @@ jobs:
       - name: Verify Artifacts
         run: twine check dist/*
 
-      - name: Publish to PyPI (Token)
-        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+      - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload --skip-existing dist/*
-
-      - name: Publish to PyPI (OIDC Trusted Publisher)
-        if: ${{ secrets.PYPI_API_TOKEN == '' }}
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true

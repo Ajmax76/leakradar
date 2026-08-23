@@ -25,8 +25,22 @@ from leakradar.markdown_poc import MarkdownPoCExporter
 try:
     from leakradar.pdf_report import PDFReportGenerator
 except ImportError:
-    PDFReportGenerator = None
-    
+    try:
+        # Fallback: load from the _pro submodule path (populated by CI deploy key)
+        import importlib.util as _ilu, sys as _sys
+        from pathlib import Path as _Path
+        _pro_path = _Path(__file__).parent / "_pro" / "pdf_report.py"
+        if _pro_path.exists():
+            _spec = _ilu.spec_from_file_location("leakradar.pdf_report", _pro_path)
+            _mod = _ilu.module_from_spec(_spec)
+            _sys.modules["leakradar.pdf_report"] = _mod
+            _spec.loader.exec_module(_mod)
+            PDFReportGenerator = _mod.PDFReportGenerator
+        else:
+            PDFReportGenerator = None
+    except Exception:
+        PDFReportGenerator = None
+
 from leakradar.seeder import OpenAPISeeder
 
 app = typer.Typer(

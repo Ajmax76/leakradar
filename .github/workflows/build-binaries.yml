@@ -26,6 +26,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout Pro submodule (Linux/macOS)
+        if: runner.os != 'Windows'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRO_SUBMODULE_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/deploy_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+          git submodule update --init --recursive
+          rm ~/.ssh/deploy_key
+
+      - name: Checkout Pro submodule (Windows)
+        if: runner.os == 'Windows'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRO_SUBMODULE_DEPLOY_KEY }}
+        shell: powershell
+        run: |
+          $keyPath = "$env:USERPROFILE\.ssh\deploy_key"
+          New-Item -ItemType Directory -Force "$env:USERPROFILE\.ssh" | Out-Null
+          $env:SSH_PRIVATE_KEY | Out-File -FilePath $keyPath -Encoding ascii -NoNewline
+          icacls $keyPath /inheritance:r /grant:r "$($env:USERDOMAIN+'\'+$env:USERNAME):(R)" | Out-Null
+          $env:GIT_SSH_COMMAND = "ssh -i $keyPath -o StrictHostKeyChecking=no"
+          ssh-keyscan -t ed25519 github.com | Add-Content "$env:USERPROFILE\.ssh\known_hosts"
+          git submodule update --init --recursive
+          Remove-Item $keyPath -Force
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,7 +63,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow setuptools
+          pip install pyinstaller pillow setuptools reportlab cryptography
           pip install -e .
 
       - name: Generate Icon (Windows)
@@ -45,12 +74,12 @@ jobs:
       - name: Build Binary with PyInstaller (Windows)
         if: runner.os == 'Windows'
         run: |
-          pyinstaller --onefile --name=leakradar-windows-x64 --icon=assets/logo.ico --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --exclude-module=leakradar.pdf_report src/leakradar/cli.py
+          pyinstaller --onefile --name=leakradar-windows-x64 --icon=assets/logo.ico --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --collect-all=leakradar src/leakradar/cli.py
 
       - name: Build Binary with PyInstaller (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          pyinstaller --onefile --name=${{ matrix.artifact_name }} --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --exclude-module=leakradar.pdf_report src/leakradar/cli.py
+          pyinstaller --onefile --name=${{ matrix.artifact_name }} --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --collect-all=leakradar src/leakradar/cli.py
 
       - name: Upload Binary Asset to GitHub Release
         uses: softprops/action-gh-release@v2
