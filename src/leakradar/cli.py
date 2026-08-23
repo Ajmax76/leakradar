@@ -21,6 +21,14 @@ from leakradar import __version__
 from leakradar.auth import LicenseManager
 from leakradar.bola_matrix import BolaMatrixRunner, Finding
 from leakradar.markdown_poc import MarkdownPoCExporter
+try:
+    import reportlab
+    import reportlab.lib.colors
+    import reportlab.lib.pagesizes
+    import reportlab.lib.styles
+    import reportlab.platypus
+except ImportError:
+    pass
 
 try:
     from leakradar.pdf_report import PDFReportGenerator

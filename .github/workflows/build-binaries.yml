@@ -48,12 +48,12 @@ jobs:
       - name: Build Binary with PyInstaller (Windows)
         if: runner.os == 'Windows'
         run: |
-          pyinstaller --onefile --name=leakradar-windows-x64 --icon=assets/logo.ico --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --collect-all=leakradar src/leakradar/cli.py
+          pyinstaller --onefile --name=leakradar-windows-x64 --icon=assets/logo.ico --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --collect-all=leakradar --collect-all=reportlab --collect-all=PIL src/leakradar/cli.py
 
       - name: Build Binary with PyInstaller (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          pyinstaller --onefile --name=${{ matrix.artifact_name }} --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --collect-all=leakradar src/leakradar/cli.py
+          pyinstaller --onefile --name=${{ matrix.artifact_name }} --hidden-import=leakradar.auth --hidden-import=leakradar.seeder --hidden-import=leakradar.bola_matrix --hidden-import=leakradar.canonicalizer --collect-all=leakradar --collect-all=reportlab --collect-all=PIL src/leakradar/cli.py
 
       - name: Upload Binary Asset to GitHub Release
         uses: softprops/action-gh-release@v2
