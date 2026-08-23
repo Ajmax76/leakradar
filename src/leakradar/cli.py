@@ -6,6 +6,7 @@ import sys
 import socket
 import ipaddress
 import contextlib
+import urllib.parse
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -19,7 +20,12 @@ from rich.table import Table
 from leakradar.auth import LicenseManager
 from leakradar.bola_matrix import BolaMatrixRunner, Finding
 from leakradar.markdown_poc import MarkdownPoCExporter
-from leakradar.pdf_report import PDFReportGenerator
+
+try:
+    from leakradar.pdf_report import PDFReportGenerator
+except ImportError:
+    PDFReportGenerator = None
+    
 from leakradar.seeder import OpenAPISeeder
 
 app = typer.Typer(
@@ -31,13 +37,13 @@ console = Console()
 
 
 @contextlib.contextmanager
-def safe_dns_resolver(allow_internal: bool):
+def safe_dns_resolver(allow_internal_host: Optional[str] = None):
     original_getaddrinfo = socket.getaddrinfo
     
     def safe_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
         results = original_getaddrinfo(host, port, family, type, proto, flags)
         
-        if allow_internal:
+        if allow_internal_host and host.lower() == allow_internal_host:
             return results
             
         safe_results = []
@@ -72,7 +78,10 @@ def _load_openapi_spec(spec_path_or_url: str, allow_internal: bool = False) -> D
     """
     content = ""
     if spec_path_or_url.startswith("http://") or spec_path_or_url.startswith("https://"):
-        with safe_dns_resolver(allow_internal):
+        parsed = urllib.parse.urlparse(spec_path_or_url)
+        allowed_host = parsed.hostname.lower() if allow_internal and parsed.hostname else None
+        
+        with safe_dns_resolver(allowed_host):
             with httpx.Client(timeout=15.0, follow_redirects=True) as client:
                 try:
                     resp = client.get(spec_path_or_url)
@@ -305,17 +314,22 @@ def scan_command(
 
     # PDF Export
     if format_choice.lower() in ("pdf", "all"):
-        pdf_path = os.path.join(output, "LeakRadar_Audit_Report.pdf")
-        PDFReportGenerator.generate(
-            findings=findings,
-            target_name=target_name,
-            output_path=pdf_path,
-            client_name="Client Audit",
-            custom_tokens=custom_tokens,
-            company_name=company,
-            logo_path=logo,
-        )
-        console.print(f"Saved Executive PDF Report: [bold green]{pdf_path}[/bold green]")
+        if PDFReportGenerator is None:
+            console.print("[bold red]PDF export requires Pro Auditor tier and the pdf_report extension.[/bold red]")
+            if format_choice.lower() == "pdf":
+                raise typer.Exit(code=1)
+        else:
+            pdf_path = os.path.join(output, "LeakRadar_Audit_Report.pdf")
+            PDFReportGenerator.generate(
+                findings=findings,
+                target_name=target_name,
+                output_path=pdf_path,
+                client_name="Client Audit",
+                custom_tokens=custom_tokens,
+                company_name=company,
+                logo_path=logo,
+            )
+            console.print(f"Saved Executive PDF Report: [bold green]{pdf_path}[/bold green]")
 
     console.print(
         Panel.fit(

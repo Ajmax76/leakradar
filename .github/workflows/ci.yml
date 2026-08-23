@@ -46,6 +46,11 @@ jobs:
             sleep 1
           done
 
+      - name: Verify CLI Execution Without Pro Extension
+        run: |
+          leakradar --help
+          echo "CLI successfully boots without pdf_report.py!"
+
       - name: Run E2E Test Suite
         env:
           VAMPI_BASE_URL: http://localhost:5000
