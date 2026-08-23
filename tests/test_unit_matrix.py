@@ -414,3 +414,38 @@ def test_p2_allow_internal_spec_bypasses_restriction(monkeypatch):
 
     result = _load_openapi_spec("http://127.0.0.1/spec.json", allow_internal=True)
     assert result["info"]["title"] == "Test"
+
+
+def test_p2_allow_internal_does_not_bypass_redirect_target_check():
+    """
+    Priority 2 Test: Asserts that --allow-internal-spec only bypasses the literal initial user-specified host.
+    A malicious redirect from that allowed host to a restricted IP (e.g. AWS Metadata) must still be blocked.
+    """
+    import threading
+    import pytest
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    from leakradar.cli import _load_openapi_spec
+
+    class RedirectHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            # Respond with 302 Redirect to AWS Metadata
+            self.send_response(302)
+            self.send_header('Location', 'http://169.254.169.254/latest/meta-data/')
+            self.end_headers()
+            
+        def log_message(self, format, *args):
+            pass
+
+    server = HTTPServer(('127.0.0.1', 8888), RedirectHandler)
+    t = threading.Thread(target=server.handle_request)
+    t.daemon = True
+    t.start()
+    
+    # We pass allow_internal=True.
+    # The initial host '127.0.0.1' is explicitly bypassed because it matches parsed.hostname.
+    # The redirect to '169.254.169.254' does NOT match '127.0.0.1', so the hook evaluates it.
+    # It catches link_local and raises ValueError.
+    with pytest.raises(ValueError, match="SSRF Protection blocked connection to restricted IP: 169.254.169.254 for host: 169.254.169.254"):
+        _load_openapi_spec("http://127.0.0.1:8888/spec", allow_internal=True)
+        
+    server.server_close()
