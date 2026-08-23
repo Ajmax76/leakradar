@@ -33,7 +33,15 @@ jobs:
       - name: Verify Artifacts
         run: twine check dist/*
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (Token)
+        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload --skip-existing dist/*
+
+      - name: Publish to PyPI (OIDC Trusted Publisher)
+        if: ${{ secrets.PYPI_API_TOKEN == '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
