@@ -60,10 +60,37 @@ pip install -e .
 leakradar scan \
   --base-url "http://127.0.0.1:8000" \
   --spec "http://127.0.0.1:8000/openapi.json" \
-  --token-a "<VICTIM_USER_JWT>" \
-  --token-b "<ATTACKER_USER_JWT>" \
+  --token-a "Bearer eyJhbGci..." \
+  --token-b "Bearer eyJhbGci..." \
   --output "./findings"
 ```
+
+---
+
+## 📖 Step-by-Step Usage Guide
+
+### Step 1: Obtain 2 User Tokens
+To detect BOLA / IDOR defects, LeakRadar tests if one user can access another user's private data. You need two authorization tokens:
+* **Token A (`--token-a`) [VICTIM]**: The Bearer token for User A (e.g. Dr. Sarah Jenkins). LeakRadar uses this token to fetch baseline responses and discover resource IDs (like `patient_id: REC-9901`).
+* **Token B (`--token-b`) [ATTACKER]**: The Bearer token for User B (e.g. Alex Miller). LeakRadar replays User A's requests using User B's token to check if User B is improperly granted access.
+
+### Step 2: Run the Scan Command
+Execute `leakradar scan` against your target API server and OpenAPI specification.
+
+---
+
+## 🛠️ Command Parameter Breakdown
+
+| Parameter | Required / Optional | Description | Example |
+| :--- | :---: | :--- | :--- |
+| `--base-url` | **Required** | The root HTTP/HTTPS address of your target API server. | `http://127.0.0.1:8000` |
+| `--spec` | **Required** | The URL or local file path to the target's **OpenAPI 3.0 specification** (`openapi.json` or `swagger.json`). LeakRadar uses this to map all endpoints and parameter schemas. | `http://127.0.0.1:8000/openapi.json` |
+| `--token-a` | **Required** | Authorization Bearer token for **User A (Victim)**. Used to establish legitimate baseline responses and harvest valid resource identifiers. | `"Bearer eyJhbGci..."` |
+| `--token-b` | **Required** | Authorization Bearer token for **User B (Attacker)**. Replays requests against User A's resources to verify authorization checks. | `"Bearer eyJhbGci..."` |
+| `--output` | Optional | Directory path where vulnerability reports and cURL PoC files will be saved. Default is `./findings`. | `./findings` |
+| `--allow-internal-spec` | Optional | Flag to allow scanning target specs hosted on internal/local IP addresses (`127.0.0.1`, `localhost`). | `--allow-internal-spec` |
+| `--allow-destructive` | Optional | Enables testing of state-changing HTTP methods (`POST`, `PUT`, `DELETE`). By default, LeakRadar runs in Safe Mode (`GET`/`HEAD` only). | `--allow-destructive` |
+| `--format` | Optional | Report export format (`markdown`, `pdf`, `all`). Default is `markdown`. | `--format markdown` |
 
 ---
 
