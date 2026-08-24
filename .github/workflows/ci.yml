@@ -1,0 +1,61 @@
+name: LeakRadar CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests & Verification
+    runs-on: ubuntu-latest
+
+    services:
+      vampi:
+        image: erev0s/vampi:latest
+        ports:
+          - 5000:5000
+        env:
+          vulnerable: 1
+          tokentimetolive: 18000
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Wait for VAmPI Service & Init DB
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:5000/createdb > /dev/null || curl -s http://localhost:5000/users/v1/createdb > /dev/null; then
+              echo "VAmPI database initialized."
+              break
+            fi
+            echo "Waiting for VAmPI..."
+            sleep 1
+          done
+
+      - name: Verify CLI Execution
+        run: |
+          leakradar --help
+          echo "CLI successfully boots!"
+
+      - name: Run Test Suite
+        env:
+          VAMPI_BASE_URL: http://localhost:5000
+        run: |
+          pytest tests/test_unit_matrix.py tests/test_vampi_e2e.py -v
+

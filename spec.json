@@ -1,0 +1,28 @@
+﻿{
+  "openapi": "3.0.0",
+  "info": { "title": "Vulnweb Test Target", "version": "1.0.0" },
+  "servers": [{ "url": "http://testphp.vulnweb.com" }],
+  "paths": {
+    "/userinfo.php": {
+      "get": {
+        "summary": "User profile page",
+        "parameters": [{ "name": "id", "in": "query", "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/showimage.php": {
+      "get": {
+        "summary": "Serve image by file param",
+        "parameters": [{ "name": "file", "in": "query", "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/artists.php": {
+      "get": {
+        "summary": "Artist detail by id",
+        "parameters": [{ "name": "artist", "in": "query", "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}

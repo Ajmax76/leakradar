@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful — LeakRadar Pro Auditor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            themeBg: '#090a0e',
+            themeFg: '#f0f4f8',
+            surface: '#111319',
+            surfaceBorder: '#232834',
+            mint: '#a1ffcb',
+            accent: '#00f0ff',
+            grey: '#1a1d26',
+            muted: '#8b95a5',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #090a0e;
+      color: #f0f4f8;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: -0.03em;
+    }
+    ::selection {
+      background: #a1ffcb;
+      color: #090a0e;
+    }
+    .btn-slide {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+    }
+    .btn-slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: #a1ffcb;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 0;
+    }
+    .btn-slide:hover::before {
+      transform: scaleX(1);
+    }
+    .btn-slide:hover {
+      color: #090a0e;
+    }
+    .btn-slide > * {
+      position: relative;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="bg-themeBg text-themeFg antialiased selection:bg-mint selection:text-themeBg min-h-screen flex flex-col justify-between">
+
+  <!-- Header Navigation -->
+  <header class="border-b border-surfaceBorder bg-themeBg/95 backdrop-blur-md sticky top-0 z-50 h-20">
+    <div class="max-w-[1400px] mx-auto px-6 h-full flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-3 group">
+        <span class="text-2xl font-black tracking-tighter text-white uppercase group-hover:text-mint transition-colors">LeakRadar</span>
+        <span class="text-[10px] font-mono tracking-widest text-mint bg-mint/10 px-2.5 py-1 border border-mint/30 uppercase">PRO ACTIVATED</span>
+      </a>
+      <a href="index.html" class="text-xs font-mono uppercase tracking-widest text-muted hover:text-white transition-colors">
+        &larr; Back to Platform
+      </a>
+    </div>
+  </header>
+
+  <!-- Success Hero Content -->
+  <main class="max-w-[1000px] mx-auto px-6 py-16 md:py-24 w-full">
+    
+    <!-- Success Badge -->
+    <div class="inline-flex items-center space-x-3 text-xs font-mono text-mint bg-mint/10 border border-mint/30 px-4 py-2 mb-8 uppercase tracking-widest">
+      <span class="w-2.5 h-2.5 bg-mint rounded-full animate-pulse"></span>
+      <span>Payment Confirmed &bull; Pro Auditor License Active</span>
+    </div>
+
+    <!-- Title -->
+    <h1 class="text-4xl md:text-6xl font-black uppercase text-white tracking-tight mb-6 leading-tight">
+      Thank You For Your Purchase.<br>
+      <span class="text-slate-500 font-light italic lowercase">welcome to leakradar pro.</span>
+    </h1>
+
+    <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-2xl mb-12">
+      Your subscription is active. Dodo Payments has sent your unique license key to your email address. Follow the 3-step setup guide below to activate Executive PDF deliverables on your terminal.
+    </p>
+
+    <!-- Activation Guide Stack -->
+    <div class="border border-surfaceBorder bg-surface/30 divide-y divide-surfaceBorder mb-12 font-mono text-xs">
+      
+      <!-- Step 1: Check Inbox -->
+      <div class="p-6 md:p-8">
+        <div class="flex items-center justify-between text-muted text-[10px] uppercase tracking-widest mb-3">
+          <span class="text-mint">Step 01 / License Retrieval</span>
+          <span>EMAIL INBOX</span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">1. Check your email for your Dodo Payments License Key</h3>
+        <p class="text-slate-400 text-xs font-sans leading-relaxed">
+          Open the receipt email sent by Dodo Payments. Look for your license key starting with <code class="text-mint bg-themeBg px-2 py-0.5 border border-surfaceBorder">pdt_...</code>.
+        </p>
+      </div>
+
+      <!-- Step 2: Install CLI -->
+      <div class="p-6 md:p-8">
+        <div class="flex items-center justify-between text-muted text-[10px] uppercase tracking-widest mb-3">
+          <span class="text-mint">Step 02 / CLI Installation</span>
+          <span>TERMINAL</span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-3">2. Install or upgrade the LeakRadar CLI</h3>
+        <div class="bg-themeBg border border-surfaceBorder p-4 flex items-center justify-between text-slate-200">
+          <span><span class="text-mint">$</span> pip install --upgrade leakradar-cli</span>
+          <button onclick="navigator.clipboard.writeText('pip install --upgrade leakradar-cli'); this.innerText='COPIED';" class="text-[10px] text-mint hover:text-white uppercase tracking-wider pl-4 border-l border-surfaceBorder transition-colors">Copy</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Activate License -->
+      <div class="p-6 md:p-8">
+        <div class="flex items-center justify-between text-muted text-[10px] uppercase tracking-widest mb-3">
+          <span class="text-mint">Step 03 / Pro Activation</span>
+          <span>TERMINAL</span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-3">3. Activate your license key locally</h3>
+        <div class="bg-themeBg border border-surfaceBorder p-4 flex items-center justify-between text-slate-200">
+          <span><span class="text-mint">$</span> leakradar auth --key LR_PRO_YOUR_KEY_HERE</span>
+          <button onclick="navigator.clipboard.writeText('leakradar auth --key LR_PRO_YOUR_KEY_HERE'); this.innerText='COPIED';" class="text-[10px] text-mint hover:text-white uppercase tracking-wider pl-4 border-l border-surfaceBorder transition-colors">Copy</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Run Executive Scan -->
+      <div class="p-6 md:p-8">
+        <div class="flex items-center justify-between text-muted text-[10px] uppercase tracking-widest mb-3">
+          <span class="text-mint">Step 04 / Executive Audit</span>
+          <span>EXPORT PDF</span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-3">4. Run your first audit with Executive PDF Export</h3>
+        <div class="bg-themeBg border border-surfaceBorder p-4 text-slate-200">
+          <div><span class="text-mint">$</span> leakradar scan --spec /path/to/openapi.json --pdf-export</div>
+          <div class="text-slate-500 text-[10px] mt-2 font-sans">&bull; Generates Executive_Audit_Report.pdf complete with CVSS 3.1 & CWE risk scores.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <a href="index.html" class="btn-slide bg-white text-themeBg font-mono text-xs font-bold uppercase tracking-widest h-14 px-8 border border-white w-full sm:w-auto">
+        <span>Return to Homepage</span>
+        <span class="ml-6">&rarr;</span>
+      </a>
+      <a href="https://github.com/ajmax76/leakradar" target="_blank" class="btn-slide bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-8 w-full sm:w-auto">
+        <span>View Documentation</span>
+        <span class="ml-6">&rarr;</span>
+      </a>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-themeBg py-8 px-6 border-t border-surfaceBorder text-xs font-mono text-muted">
+    <div class="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>&copy; 2026 ajmax76 &bull; LeakRadar Security</div>
+      <div>Support Contact: <a href="mailto:ajmax979361@gmail.com" class="text-white hover:text-mint transition-colors">ajmax979361@gmail.com</a></div>
+    </div>
+  </footer>
+
+</body>
+</html>

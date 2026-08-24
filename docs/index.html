@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeakRadar — Automated API Reconnaissance & BOLA Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            themeBg: '#090a0e',
+            themeFg: '#f0f4f8',
+            surface: '#111319',
+            surfaceBorder: '#232834',
+            mint: '#a1ffcb',
+            accent: '#00f0ff',
+            grey: '#1a1d26',
+            muted: '#8b95a5',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --site-header-height: 5rem;
+    }
+
+    body {
+      background-color: #090a0e;
+      color: #f0f4f8;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: -0.03em;
+    }
+
+    ::selection {
+      background: #a1ffcb;
+      color: #090a0e;
+    }
+
+    /* Sliding Button Fill Animation */
+    .btn-slide {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+    }
+
+    .btn-slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: #a1ffcb;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 0;
+    }
+
+    .btn-slide-mint::before {
+      background-color: #f0f4f8;
+    }
+
+    .btn-slide:hover::before {
+      transform: scaleX(1);
+    }
+
+    .btn-slide:hover {
+      color: #090a0e;
+    }
+
+    .btn-slide>* {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Headline Scaling */
+    .text-headline-50 {
+      font-size: clamp(3rem, 7vw, 7.5rem);
+      line-height: 0.85;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+    }
+
+    .text-headline-30 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      font-weight: 700;
+    }
+
+    .text-digit-10 {
+      font-size: clamp(3rem, 6vw, 6rem);
+      line-height: 0.9;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    /* Modal Animation */
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .animate-modal-in {
+      animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Custom Form Select Arrow */
+    select.custom-select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b95a5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1.25em 1.25em;
+      padding-right: 2.5rem;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    /* Custom Sleek Dark Obsidian Global Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #090a0e;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #232834;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1ffcb;
+    }
+  </style>
+</head>
+
+<body class="bg-themeBg text-themeFg antialiased selection:bg-mint selection:text-themeBg">
+
+  <!-- Header Navigation -->
+  <header class="border-b border-surfaceBorder bg-themeBg/95 backdrop-blur-md sticky top-0 z-50 h-20">
+    <div class="max-w-[1600px] mx-auto px-6 h-full flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-3 group">
+        <span
+          class="text-2xl font-black tracking-tighter text-white uppercase group-hover:text-mint transition-colors">LeakRadar</span>
+        <span class="text-xs font-mono text-mint/80 font-normal">v0.2.0</span>
+      </a>
+      <nav class="hidden md:flex items-center space-x-10 text-xs font-mono uppercase tracking-widest text-muted">
+        <a href="#about" class="hover:text-white transition-colors">01 / Engine</a>
+        <a href="#capabilities" class="hover:text-white transition-colors">02 / Architecture</a>
+        <a href="#pricing" class="hover:text-white transition-colors">03 / Pricing</a>
+        <a href="https://github.com/ajmax76/leakradar" target="_blank"
+          class="text-white hover:text-mint border-b border-mint pb-0.5 transition-colors">GitHub &rarr;</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="min-h-screen">
+
+    <!-- Hero Section (Split-Grid 2x2 Layout) -->
+    <section class="border-b border-surfaceBorder bg-themeBg">
+      <div
+        class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-surfaceBorder">
+
+        <!-- Hero Left Grid: Sticky Title -->
+        <div
+          class="p-8 md:p-16 lg:sticky lg:top-20 flex flex-col justify-between min-h-[70vh] lg:min-h-[calc(100vh-5rem)]">
+          <div>
+            <div class="flex items-center space-x-3 text-xs font-mono text-mint uppercase tracking-widest mb-8">
+              <span class="w-2 h-2 bg-mint inline-block"></span>
+              <span>OWASP API1:2023 RECONNAISSANCE & REMEDIATION</span>
+            </div>
+
+            <h1 class="text-headline-50 text-white uppercase mb-8">
+              leakradar.<br>
+              <span class="text-slate-500 font-light italic lowercase">detect & fix bola at scale.</span>
+            </h1>
+
+            <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-lg font-normal mb-12">
+              An open-core API security reconnaissance engine. Harvests JWT identity claims, prunes dynamic response
+              volatility across three baselines, and generates automated code fixes for detected BOLA vulnerabilities
+              before production compromise.
+            </p>
+          </div>
+
+          <div
+            class="pt-8 border-t border-surfaceBorder flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <a href="#pricing"
+              class="btn-slide bg-white text-themeBg font-mono text-xs font-bold uppercase tracking-widest h-14 px-8 border border-white w-full sm:w-auto">
+              <span>Start Free Scan</span>
+              <span class="ml-6">&rarr;</span>
+            </a>
+            <div class="text-xs font-mono text-muted uppercase tracking-widest">
+              Author: <a href="https://github.com/ajmax76" target="_blank"
+                class="text-white hover:text-mint transition-colors">ajmax76</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Right Grid: Interactive Command & Proof Window -->
+        <div class="bg-surface/40 p-8 md:p-16 flex flex-col justify-between">
+          <div>
+            <div
+              class="flex items-center justify-between text-xs font-mono text-muted uppercase tracking-widest border-b border-surfaceBorder pb-4 mb-8">
+              <span>Quick Start</span>
+              <span class="text-mint">● Production Ready v0.2.0</span>
+            </div>
+
+            <!-- Install Command Box -->
+            <div class="bg-themeBg border border-surfaceBorder p-6 mb-8 font-mono text-xs">
+              <div class="text-muted text-[10px] uppercase tracking-widest mb-2">CLI Installation</div>
+              <div class="flex items-center justify-between text-slate-200">
+                <span><span class="text-mint">$</span> pip install leakradar-cli</span>
+                <button onclick="navigator.clipboard.writeText('pip install leakradar-cli'); this.innerText='COPIED';"
+                  class="text-[10px] text-mint hover:text-white uppercase tracking-wider pl-4 border-l border-surfaceBorder transition-colors">Copy</button>
+              </div>
+            </div>
+
+            <!-- Live Execution Spec -->
+            <div class="bg-themeBg border border-surfaceBorder p-6 font-mono text-xs">
+              <div class="text-muted text-[10px] uppercase tracking-widest mb-3">Target Scan Output</div>
+              <div class="space-y-2 text-[11px]">
+                <div class="text-muted">$ leakradar scan --spec /openapi.json</div>
+                <div class="text-slate-400">&bull; 28 Candidate Endpoints Harvested</div>
+                <div class="text-slate-400">&bull; 3-Baseline Volatility Pruned</div>
+                <div class="text-mint">&bull; High-Confidence BOLA: GET /api/v1/orders/{id}</div>
+                <div class="text-accent">&bull; Patch Generated: FastAPI authorization fix</div>
+                <div class="text-accent">&bull; Exported Markdown PoC & Executive PDF</div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mt-12 pt-6 border-t border-surfaceBorder flex items-center justify-between text-xs font-mono text-muted">
+            <span>License: PolyForm Noncommercial 1.0.0</span>
+            <span class="text-white">ajmax76/leakradar</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Metrics Section (Interactive Animated Metric Grid) -->
+    <section id="about" class="border-b border-surfaceBorder bg-themeBg overflow-hidden">
+      <div
+        class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 lg:divide-x divide-y lg:divide-y-0 divide-surfaceBorder">
+
+        <!-- Metric 1: Volatility -->
+        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-themeBg transition-all duration-300 hover:bg-surface/60 group cursor-default">
+          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">01 / VOLATILITY</span>
+          <div>
+            <div class="text-digit-10 font-mono text-white mb-2"><span id="metric-volatility">1</span>X</div>
+            <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Baseline Volatility Normalization</p>
+          </div>
+        </div>
+
+        <!-- Metric 2: Precision (Animated 80.0% -> 99.2%) -->
+        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-mint text-themeBg transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(161,255,203,0.35)] relative z-10 group cursor-default">
+          <span class="font-mono text-xs text-themeBg/80 font-bold uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">02 / PRECISION</span>
+          <div>
+            <div class="text-digit-10 font-mono text-themeBg mb-2"><span id="metric-precision">80.0</span>%</div>
+            <p class="text-xs text-themeBg/90 font-mono font-semibold uppercase tracking-widest">False Positive Reduction Rate</p>
+          </div>
+        </div>
+
+        <!-- Metric 3: Remediation -->
+        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-themeBg transition-all duration-300 hover:bg-surface/60 group cursor-default">
+          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">03 / REMEDIATION</span>
+          <div>
+            <div id="metric-remediation" class="text-digit-10 font-mono text-white mb-2">AUTO</div>
+            <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Framework Code Fix Generator</p>
+          </div>
+        </div>
+
+        <!-- Metric 4: Latency -->
+        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-grey text-white transition-all duration-300 hover:bg-surface/80 group cursor-default">
+          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">04 / LATENCY</span>
+          <div>
+            <div class="text-digit-10 font-mono text-white mb-2">&lt;<span id="metric-latency">250</span>ms</div>
+            <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Cross-Token Replay Latency</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Capabilities Section (Sticky Sidebar Grid) -->
+    <section id="capabilities" class="border-b border-surfaceBorder bg-themeBg">
+      <div
+        class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-surfaceBorder">
+
+        <!-- Sticky Left Header -->
+        <div
+          class="lg:col-span-5 p-8 md:p-16 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] flex flex-col justify-between bg-themeBg">
+          <div>
+            <span class="text-xs font-mono text-mint uppercase tracking-widest">02 / Architecture</span>
+            <h2 class="text-headline-30 text-white uppercase mt-4">
+              Precision<br>BOLA Engine.
+            </h2>
+            <p class="text-slate-400 text-sm leading-relaxed mt-6 max-w-sm">
+              Specifically designed for security researchers, pentest teams, and bug bounty hunters to audit REST APIs
+              and patch authorization flaws automatically.
+            </p>
+          </div>
+
+          <div class="pt-8 border-t border-surfaceBorder">
+            <a href="https://github.com/ajmax76/leakradar" target="_blank"
+              class="btn-slide bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-8 w-full">
+              <span>View Source Code</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Stack: 5 Capability Cards -->
+        <div class="lg:col-span-7 divide-y divide-surfaceBorder bg-themeBg">
+
+          <!-- Card 1: Code Remediation Engine -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">01 / REMEDIATION ENGINE</span>
+              <span
+                class="text-xs font-mono text-muted uppercase group-hover:text-white transition-colors">remediation.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">Automated Framework Code Fixes</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
+              Generates drop-in authorization patch code (FastAPI, Django, Express, Spring Boot) for confirmed BOLA
+              vulnerabilities. Supports pay-as-you-go metered tokens or local air-gapped models.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">02 / VOLATILITY PRUNING</span>
+              <span
+                class="text-xs font-mono text-muted uppercase group-hover:text-white transition-colors">canonicalizer.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">3-Baseline Response Normalization</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
+              Executes triple identical User A requests before cross-token evaluation to identify and strip dynamic
+              nonces, session timestamps, and variable request IDs automatically.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">03 / ROUTE HARVESTING</span>
+              <span
+                class="text-xs font-mono text-muted uppercase group-hover:text-white transition-colors">seeder.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">JWT Identity Claim Binding</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
+              Extracts subject claims (<code class="text-slate-200">sub</code>, <code
+                class="text-slate-200">user_id</code>, <code class="text-slate-200">email</code>) directly from
+              authorization tokens to auto-populate parameterized endpoints.
+            </p>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">04 / MATRIX REPLAY</span>
+              <span
+                class="text-xs font-mono text-muted uppercase group-hover:text-white transition-colors">bola_matrix.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">Scalar Leaf Overlap Evaluation</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
+              Replays harvested resources with User B authentication. Measures scalar leaf matching ratios, resource ID
+              echoing, and cross-account data exposure.
+            </p>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="p-8 md:p-12 hover:bg-surface/50 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono text-mint uppercase tracking-widest">05 / SECRET ANALYSIS</span>
+              <span
+                class="text-xs font-mono text-muted uppercase group-hover:text-white transition-colors">secrets.py</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight mb-3">Shannon Entropy Secret Scanner</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-xl">
+              Inspects JSON payloads for exposed credentials, AWS keys, Stripe live keys, Slack webhooks, and private
+              keys using regex rules and entropy thresholds.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Pricing Section (3-Column Seamless Split-Grid) -->
+    <section id="pricing" class="border-b border-surfaceBorder bg-themeBg">
+      <div class="max-w-[1600px] mx-auto">
+        <div class="p-8 md:p-16 border-b border-surfaceBorder">
+          <span class="text-xs font-mono text-mint uppercase tracking-widest">03 / Commercial Licensing Tiers</span>
+          <h2 class="text-headline-30 text-white uppercase mt-2">Transparent Licensing Structure.</h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-surfaceBorder">
+
+          <!-- Tier 1: Community (Free) -->
+          <div class="p-8 md:p-12 flex flex-col justify-between bg-themeBg hover:bg-surface/30 transition-colors">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <span class="text-xs font-mono text-muted uppercase tracking-widest">Tier 01</span>
+                <span class="text-xs font-mono text-slate-500">PolyForm 1.0</span>
+              </div>
+              <h3 class="text-3xl font-extrabold text-white uppercase tracking-tight h-20 flex items-center">Community</h3>
+              <div class="text-4xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$0 <span
+                  class="text-xs font-normal text-muted font-sans ml-2">/ forever</span></div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
+                Complete core CLI scanner for individual security researchers under PolyForm Noncommercial License
+                1.0.0.
+              </p>
+              <ul class="space-y-4 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Full BOLA Matrix
+                  Replay Engine</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> 3-Baseline
+                  Volatility Filter</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Standard
+                  Rate-Limited Scan Engine</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Redacted Markdown
+                  PoC Reports</li>
+              </ul>
+            </div>
+            <a href="https://github.com/ajmax76/leakradar" target="_blank"
+              class="btn-slide bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-8 w-full mt-4">
+              <span>Install CLI Engine</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+
+          <!-- Tier 2: Freelancer Pro ($30/mo) -->
+          <div
+            class="p-8 md:p-12 flex flex-col justify-between bg-surface/40 hover:bg-surface/60 transition-colors relative">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <span class="text-xs font-mono text-mint uppercase tracking-widest">Tier 02</span>
+                <span class="text-xs font-mono text-mint">Commercial License</span>
+              </div>
+              <h3 class="text-3xl font-extrabold text-white uppercase tracking-tight h-20 flex items-center">Pro Auditor</h3>
+              <div class="text-4xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$30 <span
+                  class="text-xs font-normal text-muted font-sans ml-2">/ month</span></div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
+                Designed for independent penetration testers, security consultants, and dev leads delivering client
+                audits.
+              </p>
+              <ul class="space-y-4 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Full Commercial Audit
+                  License</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Executive PDF Audits
+                  & Maximum Speed</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> White-Label Branding
+                  (--company & --logo)</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Commercial Rights &
+                  2 Device Limit</li>
+              </ul>
+            </div>
+            <a href="https://checkout.dodopayments.com/buy/pdt_0NlwTNNTcyhOzShOe3sRT?quantity=1&redirect_url=https://ajmax76.github.io%2Fleakradar%2Fsuccess.html"
+              target="_blank"
+              class="btn-slide btn-slide-mint bg-mint text-themeBg font-mono text-xs uppercase font-bold tracking-widest h-14 px-8 w-full mt-4">
+              <span>Acquire Pro License</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+
+          <!-- Tier 3: Enterprise & Custom Engineering -->
+          <div class="p-8 md:p-12 flex flex-col justify-between bg-themeBg hover:bg-surface/30 transition-colors">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <span class="text-xs font-mono text-accent uppercase tracking-widest">Tier 03</span>
+                <span class="text-xs font-mono text-accent">Enterprise Terms</span>
+              </div>
+              <h3 class="text-3xl font-extrabold text-white uppercase tracking-tight h-20 flex items-center">Enterprise & Custom</h3>
+              <div class="text-3xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">Custom Scale <span
+                  class="text-xs font-normal text-muted font-sans ml-2">/ tailored</span></div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
+                Need custom auth adapters, bespoke CI/CD runners, or tailored AI models? We build custom features to
+                match your exact security stack.
+              </p>
+              <ul class="space-y-4 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Custom LLMs &
+                  Local Air-Gapped Models</li>
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Custom Auth
+                  Adapters (Okta, SAML, mTLS)</li>
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Bespoke
+                  Integration & Runner Engineering</li>
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Multi-Seat Team
+                  Pool & Dedicated SLA</li>
+              </ul>
+            </div>
+            <button onclick="openEnterpriseModal()"
+              class="btn-slide bg-surface border border-accent/40 text-accent font-mono text-xs uppercase font-bold tracking-widest h-14 px-8 w-full text-left mt-4">
+              <span>Request Custom Build Quote</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-themeBg py-12 px-6 border-t border-surfaceBorder">
+      <div
+        class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs font-mono text-muted">
+        <div>&copy; 2026 ajmax76 &bull; LeakRadar API Reconnaissance Engine</div>
+        <div class="flex items-center space-x-8">
+          <a href="https://github.com/ajmax76/leakradar" target="_blank"
+            class="hover:text-white transition-colors">GitHub</a>
+          <a href="https://pypi.org/project/leakradar/" target="_blank"
+            class="hover:text-white transition-colors">PyPI</a>
+          <a href="https://polyformproject.org/" target="_blank" class="hover:text-white transition-colors">PolyForm
+            1.0.0</a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Tier 3 Enterprise Inquiry Modal (Refined Ultra-Minimalist Design) -->
+  <div id="enterpriseModal"
+    class="fixed inset-0 bg-[#090a0e]/90 backdrop-blur-xl z-50 hidden flex items-center justify-center p-4 md:p-6 overflow-y-auto custom-scrollbar">
+    <div
+      class="bg-[#090a0e] border border-surfaceBorder max-w-2xl w-full p-6 md:p-10 relative animate-modal-in shadow-2xl my-auto">
+
+      <!-- Top Subtle Accent Line -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-mint via-accent to-mint"></div>
+
+      <!-- Close Button -->
+      <button onclick="closeEnterpriseModal()"
+        class="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors text-2xl font-mono leading-none">&times;</button>
+
+      <!-- Header -->
+      <div class="mb-8 border-b border-surfaceBorder pb-5">
+        <span class="text-[11px] font-mono text-accent uppercase tracking-widest">03 / Enterprise Licensing</span>
+        <h3 class="text-2xl md:text-3xl font-extrabold text-white uppercase tracking-tight mt-1">Enterprise Quote
+          Inquiry</h3>
+        <p class="text-xs text-slate-400 mt-2 font-normal max-w-lg leading-relaxed">
+          Specify your organizational scale and licensing requirements to receive a customized EULA and commercial
+          pricing quote.
+        </p>
+      </div>
+
+      <!-- Lead Capture Form -->
+      <form action="https://formsubmit.co/ajmax979361@gmail.com" method="POST" class="space-y-5 font-mono text-xs">
+        <input type="hidden" name="_subject" value="New Enterprise Inquiry for LeakRadar">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+
+        <!-- Row 1: Name & Corporate Email -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">Full Name *</label>
+            <input type="text" name="name" required placeholder="Alex Mercer"
+              class="w-full bg-[#111319] border border-[#232834] focus:border-mint focus:bg-[#161922] text-white px-3.5 py-2.5 text-xs font-mono transition-all placeholder:text-slate-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">Work Email *</label>
+            <input type="email" name="email" required placeholder="alex@company.com"
+              class="w-full bg-[#111319] border border-[#232834] focus:border-mint focus:bg-[#161922] text-white px-3.5 py-2.5 text-xs font-mono transition-all placeholder:text-slate-600 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Row 2: Company & Size -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">Company Name
+              *</label>
+            <input type="text" name="company" required placeholder="Acme Security Corp"
+              class="w-full bg-[#111319] border border-[#232834] focus:border-mint focus:bg-[#161922] text-white px-3.5 py-2.5 text-xs font-mono transition-all placeholder:text-slate-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">Company Size
+              *</label>
+            <select name="company_size" required
+              class="w-full bg-[#111319] border border-[#232834] focus:border-mint focus:bg-[#161922] text-white px-3.5 py-2.5 text-xs font-mono custom-select transition-all focus:outline-none cursor-pointer">
+              <option value="1-50" class="bg-[#111319] text-white">1 - 50 employees</option>
+              <option value="51-200" class="bg-[#111319] text-white">51 - 200 employees</option>
+              <option value="201-1000" class="bg-[#111319] text-white">201 - 1,000 employees</option>
+              <option value="1000+" class="bg-[#111319] text-white">1,000+ employees</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 3: API Scope & CI/CD -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">API Scope *</label>
+            <select name="api_endpoints" required
+              class="w-full bg-[#111319] border border-[#232834] focus:border-mint focus:bg-[#161922] text-white px-3.5 py-2.5 text-xs font-mono custom-select transition-all focus:outline-none cursor-pointer">
+              <option value="<50" class="bg-[#111319] text-white">Under 50 Endpoints</option>
+              <option value="50-250" class="bg-[#111319] text-white">50 - 250 Endpoints</option>
+              <option value="250-1000" class="bg-[#111319] text-white">250 - 1,000 Endpoints</option>
+              <option value="1000+" class="bg-[#111319] text-white">1,000+ Endpoints</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">CI/CD Environment
+              *</label>
+            <select name="cicd_provider" required
+              class="w-full bg-[#111319] border border-[#232834] focus:border-mint focus:bg-[#161922] text-white px-3.5 py-2.5 text-xs font-mono custom-select transition-all focus:outline-none cursor-pointer">
+              <option value="GitHub Actions" class="bg-[#111319] text-white">GitHub Actions</option>
+              <option value="GitLab CI" class="bg-[#111319] text-white">GitLab CI</option>
+              <option value="Jenkins" class="bg-[#111319] text-white">Jenkins</option>
+              <option value="Azure DevOps / Bitbucket" class="bg-[#111319] text-white">Azure DevOps / Bitbucket</option>
+              <option value="None / Manual Audit" class="bg-[#111319] text-white">None / Manual Audit</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 4: Custom Requirements Checkboxes -->
+        <div>
+          <label class="block text-[10px] text-muted uppercase tracking-widest mb-1.5 font-mono">Required Contract
+            Terms</label>
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-slate-300 text-xs bg-[#111319] p-4 border border-[#232834]">
+            <label class="flex items-center space-x-3 cursor-pointer hover:text-white transition-colors">
+              <input type="checkbox" name="requirements[]" value="Custom Commercial EULA"
+                class="w-3.5 h-3.5 rounded-none accent-mint bg-[#090a0e] border-[#232834]">
+              <span class="font-mono text-[11px]">Custom Commercial EULA</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer hover:text-white transition-colors">
+              <input type="checkbox" name="requirements[]" value="Multi-Seat Team Licenses"
+                class="w-3.5 h-3.5 rounded-none accent-mint bg-[#090a0e] border-[#232834]">
+              <span class="font-mono text-[11px]">Multi-Seat Team Licenses</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer hover:text-white transition-colors">
+              <input type="checkbox" name="requirements[]" value="On-Prem / VPC Deployment"
+                class="w-3.5 h-3.5 rounded-none accent-mint bg-[#090a0e] border-[#232834]">
+              <span class="font-mono text-[11px]">On-Prem / VPC Deployment</span>
+            </label>
+            <label class="flex items-center space-x-3 cursor-pointer hover:text-white transition-colors">
+              <input type="checkbox" name="requirements[]" value="Dedicated SLA & Support"
+                class="w-3.5 h-3.5 rounded-none accent-mint bg-[#090a0e] border-[#232834]">
+              <span class="font-mono text-[11px]">Dedicated Support & SLA</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 5: Submit & Cancel -->
+        <div class="pt-5 border-t border-surfaceBorder flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button type="button" onclick="closeEnterpriseModal()"
+            class="text-slate-500 hover:text-white uppercase tracking-widest text-xs font-mono transition-colors w-full sm:w-auto text-center">
+            Cancel
+          </button>
+          <button type="submit"
+            class="btn-slide bg-accent text-themeBg font-mono text-xs font-bold uppercase tracking-widest h-12 px-8 w-full sm:w-auto">
+            <span>Submit Enterprise Quote Request</span>
+            <span class="ml-4">&rarr;</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openEnterpriseModal() {
+      document.getElementById('enterpriseModal').classList.remove('hidden');
+    }
+    function closeEnterpriseModal() {
+      document.getElementById('enterpriseModal').classList.add('hidden');
+    }
+    // Close modal on escape key press
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeEnterpriseModal();
+      }
+    });
+
+    // Metric Block Intersection Observer & Counter Animation
+    document.addEventListener('DOMContentLoaded', () => {
+      const precisionEl = document.getElementById('metric-precision');
+      const volatilityEl = document.getElementById('metric-volatility');
+      const remediationEl = document.getElementById('metric-remediation');
+      const latencyEl = document.getElementById('metric-latency');
+      const metricsSection = document.getElementById('about');
+
+      let animated = false;
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !animated) {
+            animated = true;
+
+            // 1. Precision: Count up from 80.0% to 99.2%
+            const startPrec = 80.0;
+            const targetPrec = 99.2;
+            const precDuration = 1600;
+            const precStart = performance.now();
+
+            function animatePrecision(now) {
+              const elapsed = now - precStart;
+              const progress = Math.min(elapsed / precDuration, 1);
+              const easeOut = 1 - Math.pow(1 - progress, 3);
+              const val = (startPrec + (targetPrec - startPrec) * easeOut).toFixed(1);
+              if (precisionEl) precisionEl.innerText = val;
+
+              if (progress < 1) {
+                requestAnimationFrame(animatePrecision);
+              } else {
+                if (precisionEl) precisionEl.innerText = "99.2";
+              }
+            }
+            requestAnimationFrame(animatePrecision);
+
+            // 2. Volatility: Count up from 1X to 3X
+            const volStart = performance.now();
+            function animateVolatility(now) {
+              const progress = Math.min((now - volStart) / 1000, 1);
+              const val = Math.floor(1 + (3 - 1) * progress);
+              if (volatilityEl) volatilityEl.innerText = val;
+              if (progress < 1) requestAnimationFrame(animateVolatility);
+              else if (volatilityEl) volatilityEl.innerText = "3";
+            }
+            requestAnimationFrame(animateVolatility);
+
+            // 3. Latency: Count down from 250ms to 50ms
+            const latStart = performance.now();
+            function animateLatency(now) {
+              const progress = Math.min((now - latStart) / 1200, 1);
+              const val = Math.floor(250 - (250 - 50) * progress);
+              if (latencyEl) latencyEl.innerText = val;
+              if (progress < 1) requestAnimationFrame(animateLatency);
+              else if (latencyEl) latencyEl.innerText = "50";
+            }
+            requestAnimationFrame(animateLatency);
+
+            // 4. Remediation: Matrix Scramble to "AUTO"
+            const targetWord = "AUTO";
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@%";
+            let step = 0;
+            const interval = setInterval(() => {
+              if (!remediationEl) return;
+              const scrambled = targetWord.split('').map((char, i) => {
+                if (i < Math.floor(step)) return targetWord[i];
+                return chars[Math.floor(Math.random() * chars.length)];
+              }).join('');
+              remediationEl.innerText = scrambled;
+              step += 0.35;
+              if (step >= targetWord.length + 1) {
+                remediationEl.innerText = targetWord;
+                clearInterval(interval);
+              }
+            }, 60);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      if (metricsSection) observer.observe(metricsSection);
+    });
+
+  </script>
+
+</body>
+
+</html>
