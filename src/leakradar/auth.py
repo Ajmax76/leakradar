@@ -48,9 +48,10 @@ def verify_license_signature(
 class LicenseContext:
     active: bool = False
     key: Optional[str] = None
-    tier: str = "free"  # "free" | "paid" | "enterprise"
+    tier: str = "free"  # "free" | "pro" | "agency" | "enterprise"
     capabilities: Dict[str, bool] = field(default_factory=lambda: {
         "pdf_export": False,
+        "white_label": False,
         "cloud_rules": False,
         "unlimited_scans": True,
     })
@@ -145,21 +146,27 @@ class LicenseManager:
                         if resp.status_code == 200:
                             data = resp.json()
                             if data.get("valid", False) or "id" in data or "license_key" in data:
-                                tier = data.get("tier", "pro")
+                                tier_str = str(data.get("tier", "pro")).lower()
+                                is_agency_or_ent = tier_str in ("agency", "enterprise", "team")
                                 expires_at = data.get("expires_at")
                                 context_data = {
                                     "active": True,
                                     "key": clean_key,
-                                    "tier": tier,
+                                    "tier": tier_str,
                                     "fingerprint": fingerprint,
                                     "signature": "",
-                                    "capabilities": {"pdf_export": True, "cloud_rules": True, "unlimited_scans": True},
+                                    "capabilities": {
+                                        "pdf_export": True,
+                                        "white_label": is_agency_or_ent,
+                                        "cloud_rules": True,
+                                        "unlimited_scans": True,
+                                    },
                                     "expires_at": expires_at,
                                     "activated_at": datetime.now(timezone.utc).isoformat(),
                                 }
                                 with open(cls.CACHE_FILE, "w", encoding="utf-8") as f:
                                     json.dump(context_data, f, indent=2)
-                                return LicenseContext(active=True, key=clean_key, tier=tier, capabilities=context_data["capabilities"], expires_at=expires_at)
+                                return LicenseContext(active=True, key=clean_key, tier=tier_str, capabilities=context_data["capabilities"], expires_at=expires_at)
                     except Exception:
                         pass
             except Exception:

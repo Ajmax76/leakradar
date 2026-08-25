@@ -373,15 +373,20 @@ def scan_command(
                 file_out.write(md_content)
             console.print(f"Saved Markdown PoC: [bold green]{md_path}[/bold green]")
 
-    # White-Label Branding Check
-    if (company or logo) and not lic_ctx.active:
-        console.print("[bold yellow]White-label branding (--company & --logo) requires an active Pro Auditor License ($30/mo). Activate via `leakradar auth --key <KEY>`.[/bold yellow]")
+    # White-Label Branding Check (Agency & Enterprise Tier Feature)
+    has_white_label_perm = lic_ctx.active and (lic_ctx.capabilities.get("white_label", False) or lic_ctx.tier.lower() in ("agency", "enterprise", "team"))
+
+    if (company or logo) and not has_white_label_perm:
+        console.print(
+            "[bold yellow]White-label branding (--company & --logo) is an Agency & Enterprise Tier feature.\n"
+            "Your Pro Auditor key unlocked Executive PDF Export. To add custom agency logo branding, upgrade to Agency Tier at https://ajmax76.github.io/leakradar[/bold yellow]"
+        )
 
     # PDF Export Gating Check
     if format_choice.lower() in ("pdf", "all"):
         if not lic_ctx.active:
             console.print(
-                "[bold yellow]Executive PDF Export is a Pro Auditor Feature ($30/mo).\n"
+                "[bold yellow]Executive PDF Export is a Pro Auditor Feature.\n"
                 "Markdown PoC reports generated. To unlock PDF reports & custom white-label branding, run:\n"
                 "  leakradar auth --key <YOUR_LICENSE_KEY>[/bold yellow]"
             )
@@ -399,8 +404,8 @@ def scan_command(
                 output_path=pdf_path,
                 client_name="Client Audit",
                 custom_tokens=custom_tokens,
-                company_name=company if lic_ctx.active else None,
-                logo_path=logo if lic_ctx.active else None,
+                company_name=company if has_white_label_perm else None,
+                logo_path=logo if has_white_label_perm else None,
             )
             console.print(f"Saved Executive PDF Report: [bold green]{pdf_path}[/bold green]")
 
