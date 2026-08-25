@@ -118,16 +118,15 @@ Execute `leakradar scan` against your target API server and OpenAPI specificatio
 
 ## Feature Matrix (Community vs Pro Auditor vs Enterprise)
 
-| Feature | Community (Free) | Pro Auditor (Tier 1) | Agency Suite (Tier 2) | Enterprise (Tier 3) |
-| :--- | :---: | :---: | :---: | :---: |
-| **BOLA / IDOR Detection Engine** | Included | Included | Included | Included |
-| **Redacted Markdown PoC Export** | Included | Included | Included | Included |
-| **Scan Speed Mode** | Throttled (1.5s delay) | **Maximum Speed (0s delay)** | **Maximum Speed (0s delay)** | **Unlimited Parallel Threads** |
-| **Executive PDF Audit Reports** | Disabled | **Enabled (`--pdf`)** | **Enabled (`--pdf`)** | **Enabled (`--pdf`)** |
-| **Custom Agency Logo & White-Labeling** | Disabled | Disabled | **Enabled (`--logo`, `--company`)** | **Enabled (`--logo`, `--company`)** |
-| **Terminal Device Activations** | 1 Machine | 1 Machine | **3 Machines** | **10 Machines** |
-| **Automated Code Remediation Engine** | Disabled | **Enabled** | **Enabled** | **Enabled / Air-Gapped** |
-| **Commercial Audit Rights** | Non-Commercial Only | Freelancer / Pen-Tester | **Agency / MSSP** | **Organization-Wide** |
+| Feature | Community Edition (Free) | Pro Auditor ($30/mo) | Enterprise & Custom |
+| :--- | :---: | :---: | :---: |
+| **BOLA / IDOR Detection Engine** | Included | Included | Included |
+| **Redacted Markdown PoC Export** | Included | Included | Included |
+| **Scan Speed Mode** | Throttled (1.5s delay) | **Maximum Speed (0s delay)** | **Unlimited Parallel Threads** |
+| **Automated Code Remediation Engine** | Disabled | Disabled | **Custom / Air-Gapped Models** |
+| **Executive PDF Reports** | Disabled | **Full PDF Deliverables** | **Full PDF Deliverables** |
+| **Custom White-Label Branding** | Disabled | **Custom Logo & Company** | **Custom Logo & Company** |
+| **Commercial Audit Rights** | Non-Commercial Only | Solo Security Auditors | **Organization-Wide License** |
 
 ---
 
