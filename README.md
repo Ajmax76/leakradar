@@ -13,6 +13,10 @@
 
 ---
 
+> ℹ️ **Open-Core Repository Note**: This public repository contains the free open-core CLI framework. Premium Pro Auditor features (Executive PDF Deliverables, Custom Agency Logo Branding, and Unthrottled Scanning) are exclusive to the standalone obfuscated executable binaries downloadable from [GitHub Releases](https://github.com/Ajmax76/leakradar/releases) or activated via Pro license keys at [ajmax76.github.io/leakradar](https://ajmax76.github.io/leakradar).
+
+---
+
 ## Overview
 
 **LeakRadar** is an open-core DAST scanner designed specifically for REST APIs. It detects **Broken Object Level Authorization (BOLA / IDOR)** defects, token privilege escalation, and exposed secrets with near-zero false positives using a cross-token pairwise heuristic matrix algorithm.
@@ -135,7 +139,7 @@ Need custom capabilities, tailored AI models, or white-glove CI/CD integration f
 *  **White-Label PDF Reports**: Custom executive PDF and HTML audit reports branded with your agency or client logo.
 *  **Bespoke Integration Engineering**: We build custom integrations, internal CI/CD runners, and reporting frameworks tailored to your organization's exact tech stack.
 
-Contact our engineering team directly at **`support@leakradar.io`** to discuss custom builds or schedule an integration call.
+Contact our team directly at **[https://ajmax76.github.io/leakradar](https://ajmax76.github.io/leakradar)** or via GitHub Private Security Advisories.
 
 ---
 
