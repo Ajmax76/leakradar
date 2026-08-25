@@ -69,6 +69,18 @@ class LicenseManager:
     CACHE_FILE = CACHE_DIR / "license.json"
 
     @classmethod
+    def clear_license(cls) -> bool:
+        """
+        Deactivates and removes cached license key, reverting to free tier.
+        """
+        try:
+            if cls.CACHE_FILE.exists():
+                cls.CACHE_FILE.unlink()
+            return True
+        except Exception:
+            return False
+
+    @classmethod
     def get_machine_fingerprint(cls) -> str:
         """
         Generate a unique hardware fingerprint using platform node, system, machine, and processor.

@@ -168,11 +168,43 @@ def _generate_collision_proof_filename(finding: Finding) -> str:
 
 @app.command("auth")
 def auth_command(
-    key: str = typer.Option(..., "--key", "-k", help="Dodo Payments License Key to activate")
+    key: Optional[str] = typer.Option(None, "--key", "-k", help="Dodo Payments License Key to activate"),
+    cancel: bool = typer.Option(False, "--cancel", help="Cancel / deactivate local license key and revert to Free Tier"),
+    status: bool = typer.Option(False, "--status", help="Check current license status, tier, and capabilities"),
 ):
     """
-    Activate a paid LeakRadar license key via Dodo Payments.
+    Manage paid LeakRadar license activation, status checks, and cancellations.
     """
+    if cancel:
+        LicenseManager.clear_license()
+        console.print(
+            Panel.fit(
+                "[bold green]License Deactivated Successfully![/bold green]\n"
+                "Your local cached key has been removed.\n"
+                "LeakRadar has reverted to the Community Free Tier.\n"
+                "To manage or update your subscription, visit Dodo Payments Customer Portal at:\n"
+                "[bold cyan]https://live.dodopayments.com/customer/portal[/bold cyan]",
+                title="LeakRadar Deactivation",
+            )
+        )
+        return
+
+    if status or not key:
+        ctx = LicenseManager.get_active_context()
+        console.print(
+            Panel.fit(
+                f"Active Status: {'[bold green]ACTIVE[/bold green]' if ctx.active else '[yellow]COMMUNITY FREE TIER[/yellow]'}\n"
+                f"Tier: [bold cyan]{ctx.tier.upper()}[/bold cyan]\n"
+                f"PDF Executive Export: {'[green]Enabled[/green]' if ctx.capabilities.get('pdf_export') else '[red]Disabled[/red]'}\n"
+                f"Agency White-Labeling: {'[green]Enabled[/green]' if ctx.capabilities.get('white_label') else '[red]Disabled[/red]'}\n"
+                f"Expiration: [dim]{ctx.expires_at or 'N/A'}[/dim]",
+                title="LeakRadar License Status",
+            )
+        )
+        if not key and not status:
+            console.print("\n[dim]To activate a key, run: leakradar auth --key <YOUR_LICENSE_KEY>[/dim]")
+        return
+
     console.print(f"[bold blue]Activating LeakRadar license...[/bold blue]")
 
     async def _act():
@@ -186,13 +218,13 @@ def auth_command(
             Panel.fit(
                 f"[bold green]License Activated Successfully![/bold green]\n"
                 f"Tier: [bold cyan]{ctx.tier.upper()}[/bold cyan]\n"
-                f"PDF Export: {'[green]Enabled[/green]' if ctx.capabilities.get('pdf_export') else '[red]Disabled[/red]'}\n"
-                f"Cloud Rules: {'[green]Enabled[/green]' if ctx.capabilities.get('cloud_rules') else '[red]Disabled[/red]'}",
+                f"PDF Executive Export: {'[green]Enabled[/green]' if ctx.capabilities.get('pdf_export') else '[red]Disabled[/red]'}\n"
+                f"Agency White-Labeling: {'[green]Enabled[/green]' if ctx.capabilities.get('white_label') else '[red]Disabled[/red]'}",
                 title="LeakRadar Licensing",
             )
         )
     else:
-        console.print("[bold red]Error: License activation failed.[/bold red]")
+        console.print("[bold red]Error: License activation failed. Please check key or network connectivity.[/bold red]")
 
 
 @app.command("scan")
