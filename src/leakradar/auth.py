@@ -158,7 +158,15 @@ class LicenseManager:
                         if resp.status_code == 200:
                             data = resp.json()
                             if data.get("valid", False) or "id" in data or "license_key" in data:
-                                tier_str = str(data.get("tier", "pro")).lower()
+                                raw_tier = data.get("tier")
+                                if not raw_tier:
+                                    if "agency" in clean_key.lower() or "ent" in clean_key.lower():
+                                        tier_str = "agency"
+                                    else:
+                                        tier_str = "pro"
+                                else:
+                                    tier_str = str(raw_tier).lower()
+
                                 is_agency_or_ent = tier_str in ("agency", "enterprise", "team")
                                 expires_at = data.get("expires_at")
                                 context_data = {
