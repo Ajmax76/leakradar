@@ -203,10 +203,10 @@ def scan_command(
     token_b: str = typer.Option(..., "--token-b", "-b", help="Authorization Header / Token for User B (Attacker)"),
     output: str = typer.Option("./findings", "--output", "-o", help="Directory to save report outputs"),
     format_choice: str = typer.Option(
-        "markdown", "--format", "-f", help="Output report format choices: markdown, pdf, all"
+        "markdown", "--format", "-f", help="Output report format choices: markdown, pdf, all (PDF requires Pro Auditor License Tier 1+)"
     ),
-    company: Optional[str] = typer.Option(None, "--company", "-c", help="Custom Company / Agency Name for PDF White-Labeling (Pro Feature)"),
-    logo: Optional[str] = typer.Option(None, "--logo", "-l", help="Custom Logo File Path for PDF White-Labeling (Pro Feature)"),
+    company: Optional[str] = typer.Option(None, "--company", "-c", help="Custom Company / Agency Name for PDF White-Labeling (Agency & Enterprise Tier Feature)"),
+    logo: Optional[str] = typer.Option(None, "--logo", "-l", help="Custom Logo File Path for PDF White-Labeling (Agency & Enterprise Tier Feature)"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
     allow_destructive: bool = typer.Option(
         False,
