@@ -11,7 +11,7 @@ import httpx
 from leakradar.seeder import OpenAPISeeder, SeedResult, ResourceSeed
 from leakradar.bola_matrix import BolaMatrixRunner, Finding
 from leakradar.markdown_poc import MarkdownPoCExporter
-from leakradar.pdf_report import PDFReportGenerator
+from leakradar._pro.pdf_report import PDFReportGenerator
 
 # 1. Lightweight Mock Target API with BOLA vulnerability
 class VulnerableAPIServer(BaseHTTPRequestHandler):
@@ -84,7 +84,7 @@ def main():
     print("\n[1/4] Fetching Target OpenAPI Specification...")
     resp = httpx.get(spec_url)
     spec_data = resp.json()
-    print(f"✔️ Loaded OpenAPI Spec: {spec_data['info']['title']}")
+    print(f"[OK] Loaded OpenAPI Spec: {spec_data['info']['title']}")
 
     print("\n[2/4] Harvesting Endpoints & Normalizing Volatility (User A)...")
     headers_a = {"Authorization": token_a}
@@ -93,14 +93,14 @@ def main():
     # Pre-seed candidate parameter pool
     seeder.param_pool["user_id"] = ["101"]
     seed_result = seeder.seed_endpoints(spec_data["paths"])
-    print(f"✔️ Discovered {len(seed_result.resources)} valid resource templates.")
+    print(f"[OK] Discovered {len(seed_result.resources)} valid resource templates.")
 
     print("\n[3/4] Executing Cross-Token Authorization Replay (User B)...")
     headers_b = {"Authorization": token_b}
     matrix_runner = BolaMatrixRunner(user_b_headers=headers_b)
     findings = matrix_runner.run(seed_result)
 
-    print(f"\n⚡ DETECTED BOLA VULNERABILITIES: {len(findings)}")
+    print(f"\n[!] BOLA VULNERABILITIES DETECTED: {len(findings)}")
     for f in findings:
         print(f"   • Endpoint: {f.seed.endpoint_template}")
         print(f"   • Confidence: {f.confidence.upper()}")
@@ -121,7 +121,7 @@ def main():
         )
         with open(md_path, "w", encoding="utf-8") as f_out:
             f_out.write(md_content)
-        print(f"✔️ Saved Redacted Markdown PoC -> {md_path}")
+        print(f"[OK] Saved Redacted Markdown PoC -> {md_path}")
 
         # PDF Deliverable
         pdf_path = out_dir / "Executive_Audit_Report.pdf"
@@ -131,7 +131,7 @@ def main():
             output_path=str(pdf_path),
             custom_tokens=[token_a, token_b]
         )
-        print(f"✔️ Saved Executive PDF Report -> {pdf_path} (Size: {pdf_path.stat().st_size} bytes)")
+        print(f"[OK] Saved Executive PDF Report -> {pdf_path} (Size: {pdf_path.stat().st_size} bytes)")
 
     print("\n" + "=" * 60)
     print("     SUCCESS: LEAKRADAR ENGINE IS 100% FUNCTIONAL!     ")

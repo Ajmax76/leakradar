@@ -273,8 +273,11 @@
         class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 lg:divide-x divide-y lg:divide-y-0 divide-surfaceBorder">
 
         <!-- Metric 1: Volatility -->
-        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-themeBg transition-all duration-300 hover:bg-surface/60 group cursor-default">
-          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">01 / VOLATILITY</span>
+        <div
+          class="metric-card p-10 md:p-14 flex flex-col justify-between bg-themeBg transition-all duration-300 hover:bg-surface/60 group cursor-default">
+          <span
+            class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">01
+            / VOLATILITY</span>
           <div>
             <div class="text-digit-10 font-mono text-white mb-2"><span id="metric-volatility">1</span>X</div>
             <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Baseline Volatility Normalization</p>
@@ -282,17 +285,24 @@
         </div>
 
         <!-- Metric 2: Precision (Animated 80.0% -> 99.2%) -->
-        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-mint text-themeBg transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(161,255,203,0.35)] relative z-10 group cursor-default">
-          <span class="font-mono text-xs text-themeBg/80 font-bold uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">02 / PRECISION</span>
+        <div
+          class="metric-card p-10 md:p-14 flex flex-col justify-between bg-mint text-themeBg transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(161,255,203,0.35)] relative z-10 group cursor-default">
+          <span
+            class="font-mono text-xs text-themeBg/80 font-bold uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">02
+            / PRECISION</span>
           <div>
             <div class="text-digit-10 font-mono text-themeBg mb-2"><span id="metric-precision">80.0</span>%</div>
-            <p class="text-xs text-themeBg/90 font-mono font-semibold uppercase tracking-widest">False Positive Reduction Rate</p>
+            <p class="text-xs text-themeBg/90 font-mono font-semibold uppercase tracking-widest">False Positive
+              Reduction Rate</p>
           </div>
         </div>
 
         <!-- Metric 3: Remediation -->
-        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-themeBg transition-all duration-300 hover:bg-surface/60 group cursor-default">
-          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">03 / REMEDIATION</span>
+        <div
+          class="metric-card p-10 md:p-14 flex flex-col justify-between bg-themeBg transition-all duration-300 hover:bg-surface/60 group cursor-default">
+          <span
+            class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">03
+            / REMEDIATION</span>
           <div>
             <div id="metric-remediation" class="text-digit-10 font-mono text-white mb-2">AUTO</div>
             <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Framework Code Fix Generator</p>
@@ -300,8 +310,11 @@
         </div>
 
         <!-- Metric 4: Latency -->
-        <div class="metric-card p-10 md:p-14 flex flex-col justify-between bg-grey text-white transition-all duration-300 hover:bg-surface/80 group cursor-default">
-          <span class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">04 / LATENCY</span>
+        <div
+          class="metric-card p-10 md:p-14 flex flex-col justify-between bg-grey text-white transition-all duration-300 hover:bg-surface/80 group cursor-default">
+          <span
+            class="font-mono text-xs text-mint uppercase tracking-widest mb-6 group-hover:translate-x-1 transition-transform">04
+            / LATENCY</span>
           <div>
             <div class="text-digit-10 font-mono text-white mb-2">&lt;<span id="metric-latency">250</span>ms</div>
             <p class="text-xs text-slate-400 font-mono uppercase tracking-widest">Cross-Token Replay Latency</p>
@@ -423,109 +436,103 @@
       <div class="max-w-[1600px] mx-auto">
         <div class="p-8 md:p-16 border-b border-surfaceBorder">
           <span class="text-xs font-mono text-mint uppercase tracking-widest">03 / Commercial Licensing Tiers</span>
-          <h2 class="text-headline-30 text-white uppercase mt-2">Transparent Licensing Structure.</h2>
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 lg:divide-x divide-surfaceBorder">
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-surfaceBorder">
-
-          <!-- Tier 1: Community (Free) -->
-          <div class="p-8 md:p-12 flex flex-col justify-between bg-themeBg hover:bg-surface/30 transition-colors">
+          <!-- Tier 01: Community (Free) -->
+          <div class="p-8 flex flex-col justify-between bg-themeBg hover:bg-surface/30 transition-colors">
             <div>
               <div class="flex items-center justify-between mb-6">
                 <span class="text-xs font-mono text-muted uppercase tracking-widest">Tier 01</span>
                 <span class="text-xs font-mono text-slate-500">PolyForm 1.0</span>
               </div>
-              <h3 class="text-3xl font-extrabold text-white uppercase tracking-tight h-20 flex items-center">Community</h3>
-              <div class="text-4xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$0 <span
-                  class="text-xs font-normal text-muted font-sans ml-2">/ forever</span></div>
+              <h3 class="text-2xl font-extrabold text-white uppercase tracking-tight h-16 flex items-center">Community</h3>
+              <div class="text-3xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$0 <span class="text-xs font-normal text-muted font-sans ml-2">/ forever</span></div>
               <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
-                Complete core CLI scanner for individual security researchers under PolyForm Noncommercial License
-                1.0.0.
+                Core CLI scanner for individual security researchers under PolyForm Noncommercial License.
               </p>
-              <ul class="space-y-4 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Full BOLA Matrix
-                  Replay Engine</li>
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> 3-Baseline
-                  Volatility Filter</li>
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Standard
-                  Rate-Limited Scan Engine</li>
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Redacted Markdown
-                  PoC Reports</li>
+              <ul class="space-y-3 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Full BOLA Matrix Replay Engine</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> 3-Baseline Volatility Filter</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Redacted Markdown PoC Reports</li>
               </ul>
             </div>
-            <a href="https://github.com/ajmax76/leakradar" target="_blank"
-              class="btn-slide bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-8 w-full mt-4">
+            <a href="https://github.com/ajmax76/leakradar" target="_blank" class="btn-slide bg-surface border border-surfaceBorder text-white font-mono text-xs uppercase tracking-widest h-14 px-6 w-full mt-4">
               <span>Install CLI Engine</span>
               <span>&rarr;</span>
             </a>
           </div>
 
-          <!-- Tier 2: Freelancer Pro ($30/mo) -->
-          <div
-            class="p-8 md:p-12 flex flex-col justify-between bg-surface/40 hover:bg-surface/60 transition-colors relative">
+          <!-- Tier 02: Pro Auditor ($30/mo) -->
+          <div class="p-8 flex flex-col justify-between bg-surface/40 hover:bg-surface/60 transition-colors relative">
             <div>
               <div class="flex items-center justify-between mb-6">
                 <span class="text-xs font-mono text-mint uppercase tracking-widest">Tier 02</span>
-                <span class="text-xs font-mono text-mint">Commercial License</span>
+                <span class="text-xs font-mono text-mint">Solo Commercial</span>
               </div>
-              <h3 class="text-3xl font-extrabold text-white uppercase tracking-tight h-20 flex items-center">Pro Auditor</h3>
-              <div class="text-4xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$30 <span
-                  class="text-xs font-normal text-muted font-sans ml-2">/ month</span></div>
+              <h3 class="text-2xl font-extrabold text-white uppercase tracking-tight h-16 flex items-center">Pro Auditor</h3>
+              <div class="text-3xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$30 <span class="text-xs font-normal text-muted font-sans ml-2">/ month</span></div>
               <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
-                Designed for independent penetration testers, security consultants, and dev leads delivering client
-                audits.
+                Designed for independent penetration testers and security leads delivering client audits.
               </p>
-              <ul class="space-y-4 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Full Commercial Audit
-                  License</li>
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Executive PDF Audits
-                  & Maximum Speed</li>
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> White-Label Branding
-                  (--company & --logo)</li>
-                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Commercial Rights &
-                  2 Device Limit</li>
+              <ul class="space-y-3 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Full Commercial Audit License</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Executive PDF Audits & Max Speed</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Commercial Rights & 1 Seat</li>
               </ul>
             </div>
-            <a href="https://checkout.dodopayments.com/buy/pdt_0NlwTNNTcyhOzShOe3sRT?quantity=1&redirect_url=https://ajmax76.github.io%2Fleakradar%2Fsuccess.html"
-              target="_blank"
-              class="btn-slide btn-slide-mint bg-mint text-themeBg font-mono text-xs uppercase font-bold tracking-widest h-14 px-8 w-full mt-4">
+            <a href="https://checkout.dodopayments.com/buy/pdt_0NlwTNNTcyhOzShOe3sRT?quantity=1&redirect_url=https://ajmax76.github.io%2Fleakradar%2Fsuccess.html" target="_blank" class="btn-slide btn-slide-mint bg-mint text-themeBg font-mono text-xs uppercase font-bold tracking-widest h-14 px-6 w-full mt-4">
               <span>Acquire Pro License</span>
               <span>&rarr;</span>
             </a>
           </div>
 
-          <!-- Tier 3: Enterprise & Custom Engineering -->
-          <div class="p-8 md:p-12 flex flex-col justify-between bg-themeBg hover:bg-surface/30 transition-colors">
+          <!-- Tier 03: Agency Suite ($100/mo) -->
+          <div class="p-8 flex flex-col justify-between bg-themeBg hover:bg-surface/50 transition-colors border-l border-surfaceBorder">
             <div>
               <div class="flex items-center justify-between mb-6">
-                <span class="text-xs font-mono text-accent uppercase tracking-widest">Tier 03</span>
-                <span class="text-xs font-mono text-accent">Enterprise Terms</span>
+                <span class="text-xs font-mono text-mint uppercase tracking-widest">Tier 03</span>
+                <span class="text-xs font-mono text-mint font-bold">Agency Rights</span>
               </div>
-              <h3 class="text-3xl font-extrabold text-white uppercase tracking-tight h-20 flex items-center">Enterprise & Custom</h3>
-              <div class="text-3xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">Custom Scale <span
-                  class="text-xs font-normal text-muted font-sans ml-2">/ tailored</span></div>
+              <h3 class="text-2xl font-extrabold text-white uppercase tracking-tight h-16 flex items-center">Agency Suite</h3>
+              <div class="text-3xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">$100 <span class="text-xs font-normal text-muted font-sans ml-2">/ month</span></div>
               <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
-                Need custom auth adapters, bespoke CI/CD runners, or tailored AI models? We build custom features to
-                match your exact security stack.
+                For security consulting firms, MSSPs, and vCISOs delivering branded client audit reports.
               </p>
-              <ul class="space-y-4 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
-                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Custom LLMs &
-                  Local Air-Gapped Models</li>
-                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Custom Auth
-                  Adapters (Okta, SAML, mTLS)</li>
-                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Bespoke
-                  Integration & Runner Engineering</li>
-                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Multi-Seat Team
-                  Pool & Dedicated SLA</li>
+              <ul class="space-y-3 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Executive PDF Audits & Max Speed</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> White-Labeling (--logo & --company)</li>
+                <li class="flex items-center"><span class="text-mint mr-3 font-bold">&mdash;</span> Multi-Device Seat Licensing (3 Seats)</li>
               </ul>
             </div>
-            <button onclick="openEnterpriseModal()"
-              class="btn-slide bg-surface border border-accent/40 text-accent font-mono text-xs uppercase font-bold tracking-widest h-14 px-8 w-full text-left mt-4">
-              <span>Request Custom Build Quote</span>
+            <a href="https://checkout.dodopayments.com/buy/pdt_3eKk2NlnGz38Oq0P5rT9S?quantity=1&redirect_url=https://ajmax76.github.io%2Fleakradar%2Fsuccess.html" target="_blank" class="btn-slide btn-slide-mint bg-mint text-themeBg font-mono text-xs uppercase font-bold tracking-widest h-14 px-6 w-full mt-4">
+              <span>Acquire Agency Suite</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+
+          <!-- Tier 04: Enterprise & Custom -->
+          <div class="p-8 flex flex-col justify-between bg-themeBg hover:bg-surface/30 transition-colors">
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <span class="text-xs font-mono text-accent uppercase tracking-widest">Tier 04</span>
+                <span class="text-xs font-mono text-accent">Enterprise Terms</span>
+              </div>
+              <h3 class="text-2xl font-extrabold text-white uppercase tracking-tight h-16 flex items-center">Enterprise</h3>
+              <div class="text-2xl font-extrabold font-mono text-white mt-4 mb-4 flex items-center h-12">Custom Scale <span class="text-xs font-normal text-muted font-sans ml-2">/ tailored</span></div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-6 min-h-[40px] flex items-center">
+                Need custom auth adapters, bespoke CI/CD runners, or tailored AI models? We build to match your stack.
+              </p>
+              <ul class="space-y-3 text-xs font-mono text-slate-300 border-t border-surfaceBorder pt-6 mb-8">
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Custom AI & Air-Gapped Code Fixes</li>
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Custom Auth Adapters (Okta, SAML)</li>
+                <li class="flex items-center"><span class="text-accent mr-3 font-bold">&mdash;</span> Dedicated Multi-Seat Pool & SLA</li>
+              </ul>
+            </div>
+            <button onclick="openEnterpriseModal()" class="btn-slide bg-surface border border-accent/40 text-accent font-mono text-xs uppercase font-bold tracking-widest h-14 px-6 w-full text-left mt-4">
+              <span>Request Custom Build</span>
               <span>&rarr;</span>
             </button>
           </div>
-
         </div>
       </div>
     </section>
